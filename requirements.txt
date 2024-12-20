@@ -1,0 +1,18 @@
+# Streamlit para la aplicación principal
+streamlit
+
+# Supabase y sus dependencias
+supabase
+gotrue==2.1.0
+
+# Manejo de datos
+pandas
+pyarrow==15.0.0
+
+# HTTP Client con soporte para HTTP/2
+httpx[http2]==0.24.1
+
+# Librerías para el análisis de datos
+openpyxl
+plotly
+xlsxwriter
