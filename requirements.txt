@@ -5,7 +5,6 @@ streamlit
 supabase
 gotrue
 
-
 # Manejo de datos
 pandas
 pyarrow==15.0.0

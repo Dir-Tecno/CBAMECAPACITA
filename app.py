@@ -8,8 +8,10 @@ from supabase import create_client, Client
 st.set_page_config(page_title="CBA ME CAPACITA", page_icon="🎓", layout="wide")
 
 # Configuración de Supabase desde Streamlit secrets
-url: str = st.secrets['supabase']['url']
-key: str = st.secrets['supabase']['key']
+url = st.secrets["supabase"]["url"]
+key = st.secrets["supabase"]["key"]
+
+supabase = create_client(url, key)
 
 # Inicialización segura del cliente Supabase
 def inicializar_supabase() -> Client:
