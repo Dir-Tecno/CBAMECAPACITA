@@ -15,7 +15,6 @@ key: str = st.secrets['supabase']['key']
 def inicializar_supabase() -> Client:
     try:
         supabase: Client = create_client(supabase_url=url, supabase_key=key)
-        st.write("✅ Conexión con Supabase establecida correctamente")
         return supabase
     except Exception as e:
         st.error("❌ Error al conectar con Supabase")
