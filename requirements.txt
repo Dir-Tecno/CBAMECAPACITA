@@ -2,8 +2,9 @@
 streamlit
 
 # Supabase y sus dependencias
-supabase
-gotrue==2.1.0
+supabase==1.0.0
+gotrue==0.1.5
+
 
 # Manejo de datos
 pandas
