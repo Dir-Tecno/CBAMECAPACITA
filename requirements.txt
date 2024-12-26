@@ -2,8 +2,8 @@
 streamlit
 
 # Supabase y sus dependencias
-supabase==1.0.0
-gotrue==0.1.5
+supabase
+gotrue
 
 
 # Manejo de datos
