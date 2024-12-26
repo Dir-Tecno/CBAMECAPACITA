@@ -11,18 +11,18 @@ st.set_page_config(page_title="CBA ME CAPACITA", page_icon="🎓", layout="wide"
 url = st.secrets["supabase"]["url"]
 key = st.secrets["supabase"]["key"]
 
-supabase = create_client(url, key)
-
 # Inicialización segura del cliente Supabase
 def inicializar_supabase() -> Client:
     try:
-        supabase: Client = create_client(supabase_url=url, supabase_key=key)
+        # Inicializa el cliente sin los parámetros renombrados
+        supabase: Client = create_client(url, key)
         return supabase
     except Exception as e:
         st.error("❌ Error al conectar con Supabase")
         with st.expander("Detalles del error"):
             st.error(traceback.format_exc())
         st.stop()
+
 
 # Inicializar Supabase
 supabase = inicializar_supabase()
