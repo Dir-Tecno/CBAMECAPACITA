@@ -7,25 +7,18 @@ from supabase import create_client, Client
 # Configuración de página
 st.set_page_config(page_title="CBA ME CAPACITA", page_icon="🎓", layout="wide")
 
-# Configuración de Supabase desde Streamlit secrets
+# Configuración de las credenciales
 url = st.secrets["supabase"]["url"]
 key = st.secrets["supabase"]["key"]
 
-# Inicialización segura del cliente Supabase
-def inicializar_supabase() -> Client:
-    try:
-        # Inicializa el cliente sin los parámetros renombrados
-        supabase: Client = create_client(url, key)
-        return supabase
-    except Exception as e:
-        st.error("❌ Error al conectar con Supabase")
-        with st.expander("Detalles del error"):
-            st.error(traceback.format_exc())
-        st.stop()
+# Intentar crear el cliente sin el parámetro proxy
+try:
+    supabase = create_client(url, key)
+except TypeError as e:
+    st.error(f"Error al crear el cliente: {str(e)}")
+    st.stop()
 
-
-# Inicializar Supabase
-supabase = inicializar_supabase()
+# No es necesario volver a llamar a `inicializar_supabase()`
 
 def cargar_datos_supabase() -> pd.DataFrame:
     try:
