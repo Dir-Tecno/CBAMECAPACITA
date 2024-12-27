@@ -34,7 +34,7 @@ def cargar_datos_supabase() -> pd.DataFrame:
 
 def crear_filtros_predictivos(df: pd.DataFrame):
     filtros = {}
-    col1, col2, col3 = st.columns(3)
+    col1, col2, col3, col4 = st.columns(4)
 
     with col1:
         st.subheader("📚 Cursos")
@@ -58,6 +58,14 @@ def crear_filtros_predictivos(df: pd.DataFrame):
         filtros['N_INSTITUCION'] = (
             df[df['N_INSTITUCION'].str.contains(institucion, case=False, na=False)]['N_INSTITUCION'].unique()
             if institucion else df['N_INSTITUCION'].unique()
+        )
+
+    with col4:
+        st.subheader("🆔 CUIL")
+        cuil = st.text_input("Escribe el CUIL")
+        filtros['CUIL'] = (
+            df[df['CUIL'].astype(str).str.contains(cuil, case=False, na=False)]['CUIL'].unique()
+            if cuil else df['CUIL'].unique()
         )
 
     return filtros
