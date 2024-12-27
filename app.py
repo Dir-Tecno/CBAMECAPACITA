@@ -2,20 +2,34 @@ import streamlit as st
 import pandas as pd
 import io
 import traceback
+import logging
+
+# Configurar logging
+logging.basicConfig(level=logging.INFO, 
+                    format='%(asctime)s - %(levelname)s - %(message)s',
+                    filename='app_log.txt')
+
 from supabase import create_client, Client
 
 # Configuración de página
 st.set_page_config(page_title="CBA ME CAPACITA", page_icon="🎓", layout="wide")
 
 # Configuración de las credenciales
-url = st.secrets["supabase"]["url"]
-key = st.secrets["supabase"]["key"]
+try:
+    url = st.secrets["supabase"]["url"]
+    key = st.secrets["supabase"]["key"]
+except KeyError as e:
+    st.error(f"❌ Error en configuración de credenciales: {e}")
+    logging.error(f"Configuración de credenciales fallida: {e}")
+    st.stop()
 
 # Intentar crear el cliente sin el parámetro proxy
 try:
     supabase = create_client(url, key)
-except TypeError as e:
+    logging.info("Cliente Supabase creado exitosamente")
+except Exception as e:
     st.error(f"Error al crear el cliente: {str(e)}")
+    logging.error(f"Error al crear cliente Supabase: {traceback.format_exc()}")
     st.stop()
 
 # No es necesario volver a llamar a `inicializar_supabase()`
@@ -25,9 +39,11 @@ def cargar_datos_supabase() -> pd.DataFrame:
         respuesta = supabase.storage.from_('CBAMECAPACITA').download('ALUMNOS_X_LOCALIDAD.parquet')
         df = pd.read_parquet(io.BytesIO(respuesta))
         st.write(f"✅ Datos cargados: {len(df)} registros")
+        logging.info(f"Datos cargados exitosamente: {len(df)} registros")
         return df
     except Exception as e:
         st.error("❌ Error al cargar los datos")
+        logging.error(f"Error al cargar datos: {traceback.format_exc()}")
         with st.expander("Detalles del error"):
             st.error(traceback.format_exc())
         st.stop()
