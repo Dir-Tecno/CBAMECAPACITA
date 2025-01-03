@@ -5,6 +5,8 @@ import traceback
 import logging
 import sys
 import os
+from streamlit import runtime
+import gc
 
 # Configurar logging para mostrar en la consola
 logging.basicConfig(
@@ -53,28 +55,66 @@ def inicializar_supabase(url, key):
         st.error("Error al conectar con la base de datos.")
         return None
 
-def cargar_datos_supabase(supabase_client) -> pd.DataFrame:
+@st.cache_data(ttl=3600)  # Cache por 1 hora
+def cargar_datos_supabase(_supabase_client) -> pd.DataFrame:
     try:
         # Descargamos el archivo
-        respuesta = supabase_client.storage.from_('CBAMECAPACITA').download('ALUMNOS_X_LOCALIDAD.parquet')
+        respuesta = _supabase_client.storage.from_('CBAMECAPACITA').download('ALUMNOS_X_LOCALIDAD.parquet')
         
         # Guardamos temporalmente el contenido en un BytesIO
         buffer = io.BytesIO(respuesta)
         buffer.seek(0)
         
         try:
-            df = pd.read_parquet(buffer)
+            # Leer el Parquet con optimizaciones
+            df = pd.read_parquet(
+                buffer,
+                engine='pyarrow',
+                columns=[
+                    'N_CURSO',
+                    'N_SECTOR',
+                    'N_INSTITUCION',
+                    'CUIL',
+                    'NOMBRE_ALUMNO',
+                    'NRO_DOCUMENTO',
+                    'FEC_NACIMIENTO',
+                    'N_TIPO_SEXO',
+                    'N_LOCALIDAD',
+                    'BARRIO',
+                    'ASISTENCIA',
+                    'FEC_INICIO',
+                    'FEC_FIN',
+                    'N_TIPO',
+                    'NRO_EXPEDIENTE',
+                    'NRO_RESOLUCION',
+                    'CANTIDAD_HS',
+                    'EMAIL',
+                    'NRO_TELEFONO'
+                ]
+            )
+            
+            # Renombrar algunas columnas para mejor legibilidad
+            df = df.rename(columns={
+                'NOMBRE_ALUMNO': 'NOMBRE',
+                'NRO_DOCUMENTO': 'DNI',
+                'FEC_NACIMIENTO': 'FECHA_NAC',
+                'N_TIPO_SEXO': 'SEXO',
+                'FEC_INICIO': 'INICIO',
+                'FEC_FIN': 'FIN'
+            })
+            
         except Exception as e:
             st.error(f"Error al leer el archivo Parquet: {str(e)}")
             logging.error(f"Error detallado al leer Parquet: {traceback.format_exc()}")
             return None
+        finally:
+            buffer.close()
+            del respuesta
+            gc.collect()
 
         st.write(f"✅ Datos cargados: {len(df)} registros")
         logging.info(f"Datos cargados exitosamente: {len(df)} registros")
-
-        # Eliminar columnas específicas
-        columnas_a_eliminar = ['CONFIAMOS', 'GCAL','NOC','LUNES','MARTES','MIERCOLES','JUEVES','VIERNES','SABADO','DOMINGO','DESDE','HASTA','C_MES_DESOC', 'JUBILADO', 'DESOCUPADO', 'TRAB_INFORMAL', 'TRAB_REG', 'REL_DEPENDENCIA', 'CTA_PROPIA', 'BENEFICIARIO', 'BEN_VAT', 'BEN_ASIGNACION', 'BEN_PEC', 'BEN_SCE', 'BEN_PJ', 'D_BEN_OTRO','PRIMARIA','CICLO_BASICO','SECUNDARIA','D_SECUNDARIA','TERCIARIA','D_TERCIARIA','UNIVERSITARIA','D_UNIVERSITARIA']  
-        df = df.drop(columns=columnas_a_eliminar, errors='ignore')        
+        
         return df
         
     except Exception as e:
@@ -128,42 +168,66 @@ def aplicar_filtros(df: pd.DataFrame, filtros: dict) -> pd.DataFrame:
         df_filtrado = df_filtrado[df_filtrado[col].isin(vals)]
     return df_filtrado
 
+@st.cache_data
+def get_page_data(df: pd.DataFrame, inicio: int, fin: int) -> pd.DataFrame:
+    return df.iloc[inicio:fin].copy()
+
 def mostrar_tabla_paginada(df: pd.DataFrame):
     st.subheader("📜 Datos Filtrados")
-    n_filas = st.slider("Filas por página", min_value=5, max_value=100, value=20)
+    
+    # Fila superior con controles en una línea
+    col1, col2, col3, col4 = st.columns([1, 2, 1, 1])
+    with col1:
+        n_filas = st.selectbox(
+            "Filas por página",
+            options=[10, 20, 30, 40, 50],
+            index=1,  # 20 filas por defecto
+        )
+    
+    # Calcular paginación
     total_filas = len(df)
-    pagina = st.number_input(
-        "Número de página", min_value=1, max_value=(total_filas // n_filas) + 1, value=1
-    )
+    n_paginas = (total_filas // n_filas) + (1 if total_filas % n_filas > 0 else 0)
+    
+    with col3:
+        pagina = st.number_input(
+            "Página",
+            min_value=1,
+            max_value=n_paginas,
+            value=1,
+            help=f"Total de páginas disponibles: {n_paginas}"
+        )
+    
+    with col4:
+        st.caption(f"Total: {total_filas} registros")
+    
+    # Calcular registros a mostrar
     inicio = (pagina - 1) * n_filas
-    fin = inicio + n_filas
-    st.dataframe(df.iloc[inicio:fin], use_container_width=True)
+    fin = min(inicio + n_filas, total_filas)
+    
+    # Mostrar la tabla
+    datos_pagina = get_page_data(df, inicio, fin)
+    st.dataframe(datos_pagina, use_container_width=True)
+    
+    # Información de paginación al pie de la tabla
+    st.caption(f"Mostrando registros {inicio+1} a {fin} de {total_filas} | Página {pagina} de {n_paginas}")
 
 def descargar_datos(df: pd.DataFrame):
-    col1, col2 = st.columns(2)
+    # Solo mantener la descarga CSV
+    csv_buffer = io.StringIO()
+    chunk_size = 10000  # Procesar en chunks de 10000 filas
     
-    with col1:
-        # Descarga en CSV
-        csv = df.to_csv(index=False, encoding='utf-8')
-        st.download_button(
-            "📝 Descargar datos (CSV)", 
-            data=csv, 
-            file_name='datos_filtrados.csv', 
-            mime='text/csv'
-        )
+    for i in range(0, len(df), chunk_size):
+        chunk = df.iloc[i:i+chunk_size]
+        chunk.to_csv(csv_buffer, index=False, encoding='utf-8', 
+                    header=(i==0), mode='a')
     
-    with col2:
-        # Descarga en Excel
-        excel_buffer = io.BytesIO()
-        with pd.ExcelWriter(excel_buffer, engine='xlsxwriter') as writer:
-            df.to_excel(writer, index=False, sheet_name='Datos')
-        excel_buffer.seek(0)
-        st.download_button(
-            "📝 Descargar datos (XLSX)", 
-            data=excel_buffer, 
-            file_name='datos_filtrados.xlsx', 
-            mime='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-        )
+    csv_buffer.seek(0)
+    st.download_button(
+        "📝 Descargar datos (CSV)", 
+        data=csv_buffer.getvalue(), 
+        file_name='datos_filtrados.csv', 
+        mime='text/csv'
+    )
 
 def main():
     try:
