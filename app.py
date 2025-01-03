@@ -32,21 +32,36 @@ except Exception as e:
     logging.error(f"Error al crear cliente Supabase: {traceback.format_exc()}")
     st.stop()
 
-# No es necesario volver a llamar a `inicializar_supabase()`
-
 def cargar_datos_supabase() -> pd.DataFrame:
     try:
+        # Descargamos el archivo
         respuesta = supabase.storage.from_('CBAMECAPACITA').download('ALUMNOS_X_LOCALIDAD.parquet')
-        df = pd.read_parquet(io.BytesIO(respuesta))
+        
+        # Guardamos temporalmente el contenido en un BytesIO
+        buffer = io.BytesIO(respuesta)
+        buffer.seek(0)
+        
+        try:
+            df = pd.read_parquet(buffer)
+        except Exception as e:
+            st.error(f"Error al leer el archivo Parquet: {str(e)}")
+            logging.error(f"Error detallado al leer Parquet: {traceback.format_exc()}")
+            return None
+
         st.write(f"✅ Datos cargados: {len(df)} registros")
         logging.info(f"Datos cargados exitosamente: {len(df)} registros")
+
+        # Eliminar columnas específicas
+        columnas_a_eliminar = ['CONFIAMOS', 'GCAL','NOC','LUNES','MARTES','MIERCOLES','JUEVES','VIERNES','SABADO','DOMINGO','DESDE','HASTA','C_MES_DESOC', 'JUBILADO', 'DESOCUPADO', 'TRAB_INFORMAL', 'TRAB_REG', 'REL_DEPENDENCIA', 'CTA_PROPIA', 'BENEFICIARIO', 'BEN_VAT', 'BEN_ASIGNACION', 'BEN_PEC', 'BEN_SCE', 'BEN_PJ', 'D_BEN_OTRO','PRIMARIA','CICLO_BASICO','SECUNDARIA','D_SECUNDARIA','TERCIARIA','D_TERCIARIA','UNIVERSITARIA','D_UNIVERSITARIA']  
+        df = df.drop(columns=columnas_a_eliminar, errors='ignore')        
         return df
+        
     except Exception as e:
         st.error("❌ Error al cargar los datos")
         logging.error(f"Error al cargar datos: {traceback.format_exc()}")
         with st.expander("Detalles del error"):
             st.error(traceback.format_exc())
-        st.stop()
+        return None
 
 def crear_filtros_predictivos(df: pd.DataFrame):
     filtros = {}
@@ -77,7 +92,7 @@ def crear_filtros_predictivos(df: pd.DataFrame):
         )
 
     with col4:
-        st.subheader("🆔 CUIL")
+        st.subheader("🔑 CUIL")
         cuil = st.text_input("Escribe el CUIL")
         filtros['CUIL'] = (
             df[df['CUIL'].astype(str).str.contains(cuil, case=False, na=False)]['CUIL'].unique()
@@ -93,7 +108,7 @@ def aplicar_filtros(df: pd.DataFrame, filtros: dict) -> pd.DataFrame:
     return df_filtrado
 
 def mostrar_tabla_paginada(df: pd.DataFrame):
-    st.subheader("📋 Datos Filtrados")
+    st.subheader("📜 Datos Filtrados")
     n_filas = st.slider("Filas por página", min_value=5, max_value=100, value=20)
     total_filas = len(df)
     pagina = st.number_input(
@@ -110,7 +125,7 @@ def descargar_datos(df: pd.DataFrame):
         # Descarga en CSV
         csv = df.to_csv(index=False, encoding='utf-8')
         st.download_button(
-            "📥 Descargar datos (CSV)", 
+            "📝 Descargar datos (CSV)", 
             data=csv, 
             file_name='datos_filtrados.csv', 
             mime='text/csv'
@@ -123,7 +138,7 @@ def descargar_datos(df: pd.DataFrame):
             df.to_excel(writer, index=False, sheet_name='Datos')
         excel_buffer.seek(0)
         st.download_button(
-            "📥 Descargar datos (XLSX)", 
+            "📝 Descargar datos (XLSX)", 
             data=excel_buffer, 
             file_name='datos_filtrados.xlsx', 
             mime='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
@@ -135,6 +150,12 @@ def main():
 
     # Cargar datos
     df = cargar_datos_supabase()
+    
+    # Verificar si se cargaron los datos correctamente
+    if df is None:
+        st.error("No se pudieron cargar los datos. Por favor, verifica el archivo y vuelve a intentarlo.")
+        st.stop()
+        return
 
     # Crear filtros predictivos
     filtros = crear_filtros_predictivos(df)
