@@ -3,39 +3,60 @@ import pandas as pd
 import io
 import traceback
 import logging
+import sys
+import os
 
-# Configurar logging
-logging.basicConfig(level=logging.INFO, 
-                    format='%(asctime)s - %(levelname)s - %(message)s',
-                    filename='app_log.txt')
+# Configurar logging para mostrar en la consola
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(levelname)s - %(message)s',
+    handlers=[
+        logging.StreamHandler(sys.stdout),
+        logging.FileHandler('app_log.txt')
+    ]
+)
 
-from supabase import create_client, Client
+logger = logging.getLogger(__name__)
 
 # Configuración de página
-st.set_page_config(page_title="CBA ME CAPACITA", page_icon="🎓", layout="wide")
-
-# Configuración de las credenciales
 try:
-    url = st.secrets["supabase"]["url"]
-    key = st.secrets["supabase"]["key"]
-except KeyError as e:
-    st.error(f"❌ Error en configuración de credenciales: {e}")
-    logging.error(f"Configuración de credenciales fallida: {e}")
-    st.stop()
-
-# Intentar crear el cliente sin el parámetro proxy
-try:
-    supabase = create_client(url, key)
-    logging.info("Cliente Supabase creado exitosamente")
+    st.set_page_config(
+        page_title="CBA ME CAPACITA",
+        page_icon="🎓",
+        layout="wide",
+        initial_sidebar_state="expanded"
+    )
 except Exception as e:
-    st.error(f"Error al crear el cliente: {str(e)}")
-    logging.error(f"Error al crear cliente Supabase: {traceback.format_exc()}")
-    st.stop()
+    logger.error(f"Error en configuración de página: {e}")
 
-def cargar_datos_supabase() -> pd.DataFrame:
+# Verificar variables de entorno
+def verificar_configuracion():
+    try:
+        url = st.secrets["supabase"]["url"]
+        key = st.secrets["supabase"]["key"]
+        logger.info("Configuración de Supabase cargada correctamente")
+        return url, key
+    except Exception as e:
+        logger.error(f"Error al cargar configuración: {e}")
+        st.error("Error al cargar la configuración. Por favor, verifica las variables de entorno.")
+        return None, None
+
+# Inicializar Supabase
+def inicializar_supabase(url, key):
+    try:
+        from supabase import create_client
+        client = create_client(url, key)
+        logger.info("Cliente Supabase inicializado correctamente")
+        return client
+    except Exception as e:
+        logger.error(f"Error al inicializar Supabase: {e}")
+        st.error("Error al conectar con la base de datos.")
+        return None
+
+def cargar_datos_supabase(supabase_client) -> pd.DataFrame:
     try:
         # Descargamos el archivo
-        respuesta = supabase.storage.from_('CBAMECAPACITA').download('ALUMNOS_X_LOCALIDAD.parquet')
+        respuesta = supabase_client.storage.from_('CBAMECAPACITA').download('ALUMNOS_X_LOCALIDAD.parquet')
         
         # Guardamos temporalmente el contenido en un BytesIO
         buffer = io.BytesIO(respuesta)
@@ -145,29 +166,48 @@ def descargar_datos(df: pd.DataFrame):
         )
 
 def main():
-    st.title('🎓 CBA ME CAPACITA - Dashboard de Alumnos')
-    st.markdown("---")
+    try:
+        st.title('🎓 CBA ME CAPACITA - Dashboard de Alumnos')
+        st.markdown("---")
 
-    # Cargar datos
-    df = cargar_datos_supabase()
-    
-    # Verificar si se cargaron los datos correctamente
-    if df is None:
-        st.error("No se pudieron cargar los datos. Por favor, verifica el archivo y vuelve a intentarlo.")
+        # Verificar configuración
+        url, key = verificar_configuracion()
+        if not url or not key:
+            st.stop()
+
+        # Inicializar Supabase
+        supabase = inicializar_supabase(url, key)
+        if not supabase:
+            st.stop()
+
+        # Cargar datos
+        df = cargar_datos_supabase(supabase)
+        
+        # Verificar si se cargaron los datos correctamente
+        if df is None:
+            st.error("No se pudieron cargar los datos. Por favor, verifica el archivo y vuelve a intentarlo.")
+            st.stop()
+            return
+
+        # Crear filtros predictivos
+        filtros = crear_filtros_predictivos(df)
+
+        # Aplicar filtros
+        df_filtrado = aplicar_filtros(df, filtros)
+
+        # Mostrar tabla paginada
+        mostrar_tabla_paginada(df_filtrado)
+
+        # Descargar datos filtrados
+        descargar_datos(df_filtrado)
+
+    except Exception as e:
+        logger.error(f"Error general en la aplicación: {traceback.format_exc()}")
+        st.error("Ha ocurrido un error inesperado. Por favor, intenta más tarde.")
         st.stop()
-        return
-
-    # Crear filtros predictivos
-    filtros = crear_filtros_predictivos(df)
-
-    # Aplicar filtros
-    df_filtrado = aplicar_filtros(df, filtros)
-
-    # Mostrar tabla paginada
-    mostrar_tabla_paginada(df_filtrado)
-
-    # Descargar datos filtrados
-    descargar_datos(df_filtrado)
 
 if __name__ == '__main__':
-    main()
+    try:
+        main()
+    except Exception as e:
+        logger.error(f"Error crítico: {traceback.format_exc()}")

@@ -1,17 +1,17 @@
 # Streamlit para la aplicación principal
-streamlit
+streamlit>=1.24.0
 
 # Supabase y sus dependencias
-supabase
-gotrue
-httpx
+supabase>=1.0.3
+python-dotenv>=0.19.0
+httpx>=0.24.0
 
 # Manejo de datos
-pandas
-pyarrow
-Pillow
+pandas>=1.5.0
+pyarrow>=12.0.1
+Pillow>=9.0.0
 
 # Librerías para el análisis de datos
-openpyxl
-plotly
-xlsxwriter
+openpyxl>=3.1.0
+plotly>=5.13.0
+xlsxwriter>=3.1.0
