@@ -103,6 +103,14 @@ def cargar_datos_supabase(_supabase_client) -> pd.DataFrame:
                 'FEC_FIN': 'FIN'
             })
             
+            # Filtrar registros con FEC_INICIO a partir del 1 de enero de 2018
+            df['INICIO'] = pd.to_datetime(df['INICIO'], format='%d/%m/%Y', errors='coerce')
+            fecha_filtro = pd.Timestamp('2018-01-01')
+            df = df[df['INICIO'] >= fecha_filtro]
+
+            # Formatear la columna 'INICIO' para mostrar en formato dd/mm/yyyy
+            df['INICIO'] = df['INICIO'].dt.strftime('%d/%m/%Y')
+
         except Exception as e:
             st.error(f"Error al leer el archivo Parquet: {str(e)}")
             logging.error(f"Error detallado al leer Parquet: {traceback.format_exc()}")
