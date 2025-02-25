@@ -8,42 +8,46 @@ from datetime import datetime
 # Page configuration
 st.set_page_config(page_title="Cursos CBAME", page_icon="📚", layout="wide")
 
-# Custom CSS for better styling
 st.markdown("""
 <style>
     .main {
-        padding: 1rem 2rem;
+        padding: 2rem 3rem;
+        background-color: #f0f2f5;
     }
     .stApp {
         background-color: #ffffff;
     }
     .stTitle {
-        font-size: 2.5rem;
+        font-size: 3rem;
         font-weight: bold;
         color: #2c3e50;
+        font-family: 'Arial', sans-serif;
     }
     .stSidebar {
-        background-color: #f7f9fc;
+        background-color: #f8f9fa;
         padding: 1rem;
+        border-right: 1px solid #dee2e6;
     }
     .stButton > button {
-        background-color: #3498db;
+        background-color: #007bff;
         color: white;
         border-radius: 5px;
         border: none;
         padding: 0.5rem 1rem;
+        font-family: 'Arial', sans-serif;
     }
     .stDataFrame {
-        border: 1px solid #ddd;
+        border: 1px solid #dee2e6;
         border-radius: 5px;
         overflow: hidden;
     }
     .stDataFrame th, .stDataFrame td {
-        padding: 0.5rem;
+        padding: 0.75rem;
         text-align: left;
+        font-family: 'Arial', sans-serif;
     }
     .stDataFrame th {
-        background-color: #f2f2f2;
+        background-color: #e9ecef;
     }
 </style>
 """, unsafe_allow_html=True)
