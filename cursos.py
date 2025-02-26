@@ -2,8 +2,7 @@ import streamlit as st
 import pandas as pd
 from huggingface_hub import hf_hub_download
 import plotly.express as px
-import plotly.graph_objects as go
-from datetime import datetime
+from datetime import datetime, timedelta
 
 # Page configuration
 st.set_page_config(page_title="Cursos CBAME", page_icon="📚", layout="wide")
@@ -88,82 +87,141 @@ def load_data():
 # Load the data
 df_cursos, df_docentes = load_data()
 
-# ... existing code ...
-
 if df_cursos is not None and df_docentes is not None:
-    # Convert 'FEC_INICIO' and 'FEC_FIN' to datetime with specified format
-    df_cursos['FEC_INICIO'] = pd.to_datetime(df_cursos['FEC_INICIO'], format='%d/%m/%Y %H:%M:%S', errors='coerce')
-    df_cursos['FEC_FIN'] = pd.to_datetime(df_cursos['FEC_FIN'], format='%d/%m/%Y %H:%M:%S', errors='coerce')
+
+    # Convertir fechas permitiendo valores nulos en FEC_FIN
+    df_cursos['FEC_INICIO'] = pd.to_datetime(df_cursos['FEC_INICIO'], format='%d/%m/%Y %H:%M', errors='coerce')
+    df_cursos['FEC_FIN'] = pd.to_datetime(df_cursos['FEC_FIN'], format='%d/%m/%Y %H:%M', errors='coerce')
+
+    # Tabs
+    tab1, tab2 = st.tabs(["📊 Análisis de Cursos", "👨‍🏫 Análisis de Docentes"])
     
-    # Sidebar filters
-    st.sidebar.title("Filtros")
-    
-    # Date range slider
-    st.sidebar.subheader("Rango de Fechas")
-    min_date = df_cursos['FEC_INICIO'].min().date()
-    max_date = df_cursos['FEC_FIN'].max().date()
-    date_range = st.sidebar.slider(
-        "Seleccionar rango de fechas",
-        min_value=min_date,
-        max_value=max_date,
-        value=(min_date, max_date),
-        format="DD/MM/YYYY"
-    )
-    
-    # Apply date filter
-    filtered_cursos = df_cursos[(df_cursos['FEC_INICIO'] >= pd.to_datetime(date_range[0])) & (df_cursos['FEC_FIN'] <= pd.to_datetime(date_range[1]))]
+    with tab1:
+        st.title("📊 Reporte de Cursos CBAME")
         
-    # Sector Productivo filter
-    sectores = ['Todos'] + sorted(df_cursos['N_SECTOR_PRODUCTIVO'].unique().tolist())
-    sector_selected = st.sidebar.selectbox("Sector Productivo", sectores)
-    
-    # Localidad filter
-    localidades = ['Todas'] + sorted(df_cursos['N_LOCALIDAD'].unique().tolist())
-    localidad_selected = st.sidebar.selectbox("Localidad", localidades)
-    
-    # Apply filters
-    filtered_cursos = df_cursos.copy()
-    if sector_selected != 'Todos':
-        filtered_cursos = filtered_cursos[filtered_cursos['N_SECTOR_PRODUCTIVO'] == sector_selected]
-    if localidad_selected != 'Todas':
-        filtered_cursos = filtered_cursos[filtered_cursos['N_LOCALIDAD'] == localidad_selected]
-    
-    # Main dashboard content
-    col1, col2 = st.columns(2)
-    
-    with col1:
-        # Cursos por Sector Productivo
-        st.subheader("Cursos por Sector Productivo")
-        fig_sector = px.pie(
-            filtered_cursos,
-            names='N_SECTOR_PRODUCTIVO',
-            values='CUPO',
-            title='Distribución de Cupos por Sector Productivo'
+        # Sidebar filters
+        st.sidebar.title("Filtros")
+        
+        # Sector Productivo filter
+        sectores = ['Todos'] + sorted(df_cursos['N_SECTOR_PRODUCTIVO'].unique().tolist())
+        sector_selected = st.sidebar.selectbox("Sector Productivo", sectores)
+        
+        # Localidad filter
+        localidades = ['Todas'] + sorted(df_cursos['N_LOCALIDAD'].unique().tolist())
+        localidad_selected = st.sidebar.selectbox("Localidad", localidades)
+        
+        # Apply filters
+        filtered_cursos = df_cursos
+        if sector_selected != 'Todos':
+            filtered_cursos = filtered_cursos[filtered_cursos['N_SECTOR_PRODUCTIVO'] == sector_selected]
+        if localidad_selected != 'Todas':
+            filtered_cursos = filtered_cursos[filtered_cursos['N_LOCALIDAD'] == localidad_selected]
+
+        
+        # Main dashboard content
+        col1, col2 = st.columns(2)
+        
+        with col1:
+            # Cursos por Sector Productivo
+            st.subheader("Cursos por Sector Productivo")
+            fig_sector = px.pie(
+                filtered_cursos,
+                names='N_SECTOR_PRODUCTIVO',
+                values='CUPO',
+                title='Distribución de Cupos por Sector Productivo'
+            )
+            st.plotly_chart(fig_sector, use_container_width=True)
+        
+        with col2:
+            # Cursos por Localidad
+            st.subheader("Cursos por Localidad")
+            fig_localidad = px.bar(
+                filtered_cursos.groupby('N_LOCALIDAD').size().reset_index(name='count'),
+                x='N_LOCALIDAD',
+                y='count',
+                title='Cantidad de Cursos por Localidad'
+            )
+            st.plotly_chart(fig_localidad, use_container_width=True)
+        
+        # Detailed information
+        st.markdown("""---""")
+        st.subheader("Detalle de Cursos")
+        
+        # Display filtered courses in a table
+        st.dataframe(
+            filtered_cursos[[ 
+                'N_CURSO', 'N_CERTIFICACION', 'N_TRAYECTO_FORMATIVO',
+                'N_SECTOR_PRODUCTIVO', 'CUPO', 'FEC_INICIO', 'FEC_FIN',
+                'N_LOCALIDAD', 'N_BARRIO'
+            ]]
         )
-        st.plotly_chart(fig_sector, use_container_width=True)
-    
-    with col2:
-        # Cursos por Localidad
-        st.subheader("Cursos por Localidad")
-        fig_localidad = px.bar(
-            filtered_cursos.groupby('N_LOCALIDAD').size().reset_index(name='count'),
-            x='N_LOCALIDAD',
-            y='count',
-            title='Cantidad de Cursos por Localidad'
+
+ # Download buttons for dataframes
+        st.sidebar.subheader("Descargar Datos Cursos")
+        csv_cursos = df_cursos.to_csv(index=False).encode('utf-8')
+        st.sidebar.download_button(
+            label="Descargar Cursos",
+            data=csv_cursos,
+            file_name='cursos.csv',
+            mime='text/csv'
         )
-        st.plotly_chart(fig_localidad, use_container_width=True)
+        
+        csv_docentes = df_docentes.to_csv(index=False).encode('utf-8')
+        st.sidebar.download_button(
+            label="Descargar Docentes",
+            data=csv_docentes,
+            file_name='docentes.csv',
+            mime='text/csv'
+        )
+
+
     
-    # Detailed information
-    st.markdown("""---""")
-    st.subheader("Detalle de Cursos")
-    
-    # Display filtered courses in a table
-    st.dataframe(
-        filtered_cursos[[
-            'N_CURSO', 'N_CERTIFICACION', 'N_TRAYECTO_FORMATIVO',
-            'N_SECTOR_PRODUCTIVO', 'CUPO', 'FEC_INICIO', 'FEC_FIN',
-            'N_LOCALIDAD', 'N_BARRIO'
-        ]]
-    )
+    with tab2:
+        st.title("👨‍🏫 Análisis de Docentes")
+        
+        # Filter out rows without 'ID_DOCENTE'
+        filtered_docentes = df_docentes.dropna(subset=['ID_DOCENTE'])
+        
+        # Calculate total number of unique docentes
+        total_docentes = filtered_docentes['ID_DOCENTE'].nunique()
+        
+        # Display total number of docentes
+        st.metric(label="Total de Docentes", value=total_docentes)
+        
+        # Group docentes by course
+        docentes_por_curso = filtered_docentes.groupby('N_CURSO')['NRO_DOCUMENTO'].nunique().reset_index()
+        
+        # Layout with two columns
+        col1, col2 = st.columns(2)
+        
+        with col1:
+            # Display docentes by course as a pie chart
+            st.subheader("Docentes por Curso")
+            fig_docentes_curso = px.pie(
+                docentes_por_curso,
+                names='N_CURSO',
+                values='NRO_DOCUMENTO',
+                title='Distribución de Docentes por Curso'
+            )
+            st.plotly_chart(fig_docentes_curso, use_container_width=True)
+        
+        with col2:
+            # Detailed information
+            st.subheader("Detalle de Docentes")
+            
+            # Display docentes details in a table
+            st.dataframe(
+                filtered_docentes[[ 
+                    'NRO_DOCUMENTO', 'ID_DOCENTE', 'N_CURSO', 'HS_ASIGNADAS'
+                ]]
+            )
+
+
+
 else:
     st.error("No se pudieron cargar los datos. Por favor, verifica la conexión y los archivos.")
+
+
+
+
+       
