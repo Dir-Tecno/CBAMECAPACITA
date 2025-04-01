@@ -113,41 +113,25 @@ if df_cursos is not None and df_docentes is not None:
         localidad_selected = st.sidebar.selectbox("Localidad", localidades)
         
         # Apply filters
-        filtered_cursos = df_cursos.copy()  # Use a copy to avoid modifying the original
+        filtered_cursos = df_cursos
         if sector_selected != 'Todos':
             filtered_cursos = filtered_cursos[filtered_cursos['N_SECTOR_PRODUCTIVO'] == sector_selected]
         if localidad_selected != 'Todas':
             filtered_cursos = filtered_cursos[filtered_cursos['N_LOCALIDAD'] == localidad_selected]
-        
-        #check if the filtered_cursos is empty.
-        if filtered_cursos.empty:
-          st.error("After filtering there is no data available. Change the filters")
 
-        # Add these lines for debugging
-        st.write("Unique Localities in df_cursos:", df_cursos['N_LOCALIDAD'].unique())
-        if filtered_cursos.empty:
-          st.error("filtered_cursos is empty")
-        else:
-          st.write("Unique Localities in filtered_cursos:", filtered_cursos['N_LOCALIDAD'].unique())
-          st.write(filtered_cursos)
-        #check if there are null values
-        if filtered_cursos['N_LOCALIDAD'].isnull().values.any():
-          st.error("There are Null values in filtered_cursos['N_LOCALIDAD']")
-
-        
+        # Main dashboard content
         col1, col2 = st.columns(2)
-
+        
         with col1:
             # Cursos por Sector Productivo
             st.subheader("Cursos por Sector Productivo")
             fig_sector = px.pie(
                 filtered_cursos,
                 names='N_SECTOR_PRODUCTIVO',
-                values='N_CURSO',
-                title='Distribución de Cursos por Sector Productivo'
+                values='CUPO',
+                title='Distribución de Cupos por Sector Productivo'
             )
             st.plotly_chart(fig_sector, use_container_width=True)
-
         
         with col2:
             # Cursos por Localidad
@@ -161,7 +145,8 @@ if df_cursos is not None and df_docentes is not None:
             st.plotly_chart(fig_localidad, use_container_width=True)
 
 
-            # Mapa de cursos por localidad
+
+        # Mapa de cursos por localidad
         st.subheader("Mapa de Cursos por Localidad")
         try:
           with open(geojson_path) as f:
@@ -186,6 +171,8 @@ if df_cursos is not None and df_docentes is not None:
             title='Mapa de Cursos por Localidad'
         )
         st.plotly_chart(fig_map, use_container_width=True)
+
+
         
         # Detailed information
         st.markdown("""---""")
@@ -200,7 +187,7 @@ if df_cursos is not None and df_docentes is not None:
             ]]
         )
 
-        # Download buttons for dataframes
+ # Download buttons for dataframes
         st.sidebar.subheader("Descargar Datos Cursos")
         csv_cursos = df_cursos.to_csv(index=False).encode('utf-8')
         st.sidebar.download_button(
@@ -222,52 +209,43 @@ if df_cursos is not None and df_docentes is not None:
     
     with tab2:
         st.title("👨‍🏫 Análisis de Docentes")
-
+        
         # Filter out rows without 'ID_DOCENTE'
-        filtered_docentes = df_docentes.dropna(subset=['ID_DOCENTE']).copy() # added .copy()
-
+        filtered_docentes = df_docentes.dropna(subset=['ID_DOCENTE'])
+        
         # Calculate total number of unique docentes
         total_docentes = filtered_docentes['ID_DOCENTE'].nunique()
-
+        
         # Display total number of docentes
         st.metric(label="Total de Docentes", value=total_docentes)
-
+        
         # Group docentes by course
         docentes_por_curso = filtered_docentes.groupby('N_CURSO')['NRO_DOCUMENTO'].nunique().reset_index()
         
-        # Renamed columns for better understanding
-        docentes_por_curso.columns = ['N_CURSO', 'Cantidad_Docentes']
-
         # Layout with two columns
         col1, col2 = st.columns(2)
-
+        
         with col1:
             # Display docentes by course as a pie chart
             st.subheader("Docentes por Curso")
             fig_docentes_curso = px.pie(
                 docentes_por_curso,
                 names='N_CURSO',
-                values='Cantidad_Docentes', # Updated values
+                values='NRO_DOCUMENTO',
                 title='Distribución de Docentes por Curso'
             )
             st.plotly_chart(fig_docentes_curso, use_container_width=True)
-
+        
         with col2:
             # Detailed information
             st.subheader("Detalle de Docentes")
-
+            
             # Display docentes details in a table
-            # Select the columns you want to show
-            docentes_to_show = ['ID_DOCENTE', 'N_CURSO', 'NRO_DOCUMENTO', 'APELLIDO', 'NOMBRE','TIPO_DOCUMENTO']
-            
-            # Check if the column exists in the df_docentes
-            columns_to_show = []
-            for column in docentes_to_show:
-              if column in filtered_docentes.columns:
-                columns_to_show.append(column)
-            
-            # Added a check if columns_to_show is empty to prevent error
-            if columns_to_show:
-              st.dataframe(filtered_docentes[columns_to_show])
-            else:
-              st.error("No data available in filtered_docentes to display")
+            st.dataframe(
+                filtered_docentes[[ 
+                    'NRO_DOCUMENTO', 'ID_DOCENTE', 'N_CURSO', 'HS_ASIGNADAS'
+                ]]
+            )
+
+else:
+    st.error("No se pudieron cargar los datos. Por favor, verifica la conexión y los archivos.")
