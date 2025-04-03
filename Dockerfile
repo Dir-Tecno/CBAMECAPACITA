@@ -38,4 +38,4 @@ ENV HUGGINGFACE_TOKEN=""
 ENTRYPOINT ["/app/entrypoint.sh"]
 
 # Comando para ejecutar la aplicación
-CMD ["streamlit", "run", "cursos.py", "--server.port=8501", "--server.address=0.0.0.0"]
+CMD ["streamlit", "run", "app.py", "--server.port=8501", "--server.address=0.0.0.0"]
