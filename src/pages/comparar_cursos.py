@@ -152,12 +152,35 @@ def analizar_compatibilidad(df_historico, df_certificaciones):
                     if engine is not None:
                         # Insertar la equivalencia
                         with engine.connect() as conn:
-                            # Corregir la forma de ejecutar la consulta
-                            sql = text("""
-                                INSERT INTO T_EQUIVALENCIAS_CURSOS (n_curso, n_certificacion)
-                                VALUES (:curso, :cert)
+                            # Verificar si ya existe la equivalencia
+                            check_sql = text("""
+                                SELECT id_equivalencia 
+                                FROM T_EQUIVALENCIAS_CURSOS eq
+                                JOIN T_ESTADOS_EQUIVALENCIAS ee ON eq.id_estado = ee.id_estado
+                                WHERE eq.n_curso = :curso 
+                                AND eq.n_certificacion = :cert 
+                                AND ee.nombre_estado = 'ACTIVO'
                             """)
-                            conn.execute(sql, {"curso": curso_historico, "cert": certificacion})
+                            result = conn.execute(check_sql, {"curso": curso_historico, "cert": certificacion}).fetchone()
+                            
+                            if result:
+                                st.warning("Esta equivalencia ya existe.")
+                                return
+                            
+                            # Insertar nueva equivalencia
+                            sql = text("""
+                                INSERT INTO T_EQUIVALENCIAS_CURSOS 
+                                (n_curso, n_certificacion, usuario_creacion, observaciones, id_estado)
+                                VALUES (:curso, :cert, :usuario, :obs, 
+                                    (SELECT id_estado FROM T_ESTADOS_EQUIVALENCIAS WHERE nombre_estado = 'ACTIVO')
+                                )
+                            """)
+                            conn.execute(sql, {
+                                "curso": curso_historico, 
+                                "cert": certificacion,
+                                "usuario": "sistema",
+                                "obs": ""
+                            })
                             conn.commit()
                             
                         st.success("¡Equivalencia guardada exitosamente!")
@@ -169,14 +192,19 @@ def analizar_compatibilidad(df_historico, df_certificaciones):
             try:
                 engine = get_database_connection()
                 if engine is not None:
-                    # Fix: Remove fecha_creacion from the query since it doesn't exist
                     query = """
                         SELECT 
-                            id_equivalencia,
-                            n_curso,
-                            n_certificacion
-                        FROM T_EQUIVALENCIAS_CURSOS
-                        ORDER BY id_equivalencia DESC
+                            eq.id_equivalencia,
+                            eq.n_curso as curso_historico,
+                            eq.n_certificacion as certificacion_actual,
+                            eq.fecha_creacion,
+                            eq.usuario_creacion,
+                            eq.observaciones,
+                            ee.nombre_estado
+                        FROM T_EQUIVALENCIAS_CURSOS eq
+                        JOIN T_ESTADOS_EQUIVALENCIAS ee ON eq.id_estado = ee.id_estado
+                        WHERE ee.nombre_estado = 'ACTIVO'
+                        ORDER BY eq.fecha_creacion DESC
                     """
                     df_equivalencias = pd.read_sql(query, engine)
                     
@@ -184,7 +212,17 @@ def analizar_compatibilidad(df_historico, df_certificaciones):
                     if df_equivalencias.empty:
                         st.info("No hay equivalencias registradas aún.")
                     else:
-                        st.dataframe(df_equivalencias, use_container_width=True,hide_index=True)
+                        st.dataframe(
+                            df_equivalencias,
+                            use_container_width=True,
+                            hide_index=True,
+                            column_config={
+                                "fecha_creacion": st.column_config.DatetimeColumn(
+                                    "Fecha de Creación",
+                                    format="DD/MM/YYYY HH:mm"
+                                )
+                            }
+                        )
             except Exception as e:
                 st.error(f"Error al cargar equivalencias existentes: {str(e)}")
                 logger.error(f"Error al cargar equivalencias: {traceback.format_exc()}")
