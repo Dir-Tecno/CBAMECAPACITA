@@ -4,6 +4,7 @@ from sqlalchemy import create_engine, text
 import logging
 import traceback
 import sys
+import os
 
 # Configurar logging
 logging.basicConfig(
@@ -19,8 +20,9 @@ logger = logging.getLogger(__name__)
 
 def get_database_connection():
     try:
-        # Configuración para MariaDB
-        connection_string = "mysql+pymysql://usuario1:usuario1@5.161.118.67:3306/CBAMECAPACITA"
+        # Obtener credenciales desde secrets.toml
+        db_credentials = st.secrets["db_credentials"]
+        connection_string = f"mysql+pymysql://{db_credentials['DB_USER']}:{db_credentials['DB_PASSWORD']}@{db_credentials['DB_HOST']}:{db_credentials['DB_PORT']}/{db_credentials['DB_NAME']}"
         engine = create_engine(connection_string)
         return engine
     except Exception as e:

@@ -19,8 +19,8 @@ RUN git clone https://github.com/Dir-Tecno/CBAMECAPACITA.git .
 # Instalar dependencias
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Crear directorio para logs y secrets
-RUN mkdir -p /app/logs /app/.streamlit
+# Crear directorios necesarios
+RUN mkdir -p /app/logs /app/.streamlit /app/src/pages /app/src/config /app/src/utils
 
 # Crear un script para generar el archivo secrets.toml en tiempo de ejecución
 RUN echo '#!/bin/bash\necho "[HuggingFace]" > /app/.streamlit/secrets.toml\necho "huggingface_token = \"$HUGGINGFACE_TOKEN\"" >> /app/.streamlit/secrets.toml\nexec "$@"' > /app/entrypoint.sh && \
@@ -29,8 +29,11 @@ RUN echo '#!/bin/bash\necho "[HuggingFace]" > /app/.streamlit/secrets.toml\necho
 # Exponer el puerto que usa Streamlit
 EXPOSE 8501
 
-# Variables de entorno para Python
+# Variables de entorno para Python y logging
 ENV PYTHONUNBUFFERED=1
+ENV PYTHONPATH=/app
+ENV LOG_DIR=/app/logs
+
 # Variable para el token de Hugging Face (se sobrescribirá al ejecutar el contenedor)
 ENV HUGGINGFACE_TOKEN=""
 
@@ -38,4 +41,4 @@ ENV HUGGINGFACE_TOKEN=""
 ENTRYPOINT ["/app/entrypoint.sh"]
 
 # Comando para ejecutar la aplicación
-CMD ["streamlit", "run", "app.py", "--server.port=8501", "--server.address=0.0.0.0"] 
+CMD ["streamlit", "run", "app.py", "--server.port=8501", "--server.address=0.0.0.0"]
