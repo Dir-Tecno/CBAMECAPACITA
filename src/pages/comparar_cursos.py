@@ -37,11 +37,14 @@ def load_data():
 
         # Cargar las dos vistas con los nombres correctos de las tablas
         query_historico = """
-            SELECT DISTINCT N_CURSO, N_SECTOR, N_INSTITUCI
+            SELECT DISTINCT N_CURSO, N_SECTOR
             FROM T_CURSOS_HISTORICO 
             ORDER BY N_CURSO
         """
-        query_certificaciones = "SELECT * FROM T_CERTIF_X_LOCALIDAD"
+        query_certificaciones = """
+            SELECT DISTINCT N_CERTIFICACION, LUGAR_CURSADO 
+            FROM T_CERTIF_X_LOCALIDAD
+        """
         
         df_historico = pd.read_sql(query_historico, engine)
         df_certificaciones = pd.read_sql(query_certificaciones, engine)
@@ -140,7 +143,6 @@ def analizar_compatibilidad(df_historico, df_certificaciones):
                     st.info(f"""
                     **Detalles de la Certificación:**
                     - Certificación: {cert_info['N_CERTIFICACION']}
-                    - Nombre: {cert_info.get('nombre_certificacion', 'No disponible')}
                     """)
             
              # Botón para guardar la equivalencia

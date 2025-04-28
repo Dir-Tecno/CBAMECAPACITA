@@ -974,3 +974,6 @@ sqlalchemy.exc.IntegrityError: (pymysql.err.IntegrityError) (1062, "Duplicate en
 2025-04-28 13:56:09,988 - INFO - Configuración de Hugging Face cargada correctamente
 2025-04-28 13:56:09,991 - INFO - Descargando archivo desde Hugging Face: Dir-Tecno/CBAMECAPACITA
 2025-04-28 13:56:12,243 - INFO - Datos cargados exitosamente: 251288 registros
+2025-04-28 14:55:22,998 - INFO - Configuración de Hugging Face cargada correctamente
+2025-04-28 14:55:23,001 - INFO - Descargando archivo desde Hugging Face: Dir-Tecno/CBAMECAPACITA
+2025-04-28 14:55:25,708 - INFO - Datos cargados exitosamente: 251288 registros
