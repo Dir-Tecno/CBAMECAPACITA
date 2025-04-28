@@ -8,6 +8,7 @@ import os
 from streamlit import runtime
 import gc
 from huggingface_hub import hf_hub_download
+from src.pages.comparar_cursos import main as comparar_cursos_main
 
 # Configurar logging para mostrar en la consola
 logging.basicConfig(
@@ -416,39 +417,47 @@ def main():
         # Título principal con estilo mejorado
         st.markdown("<h1>🎓 CBA ME CAPACITA - Dashboard de Alumnos</h1>", unsafe_allow_html=True)
         
-        # Información del dashboard
-        st.markdown("""
-        <div style="background-color: #e9f5ff; padding: 1rem; border-radius: 10px; margin-bottom: 2rem;">
-            <p style="margin: 0;">Este dashboard permite visualizar y filtrar información sobre los alumnos de los cursos de CBA ME CAPACITA. 
-            Utilice los filtros para encontrar información específica y descargue los datos según sus necesidades.</p>
-        </div>
-        """, unsafe_allow_html=True)
-
-        # Verificar configuración de Hugging Face
-        hf_token = verificar_configuracion()
-        if not hf_token:
-            st.stop()
-
-        # Cargar datos desde Hugging Face
-        df = cargar_datos_huggingface(hf_token)
+        # Crear pestañas para la navegación
+        tab1, tab2 = st.tabs(["📊 Dashboard Principal", "🔄 Comparación de Cursos"])
         
-        # Verificar si se cargaron los datos correctamente
-        if df is None:
-            st.error("No se pudieron cargar los datos. Por favor, verifica el archivo y vuelve a intentarlo.")
-            st.stop()
-            return
+        with tab1:
+            # Información del dashboard
+            st.markdown("""
+            <div style="background-color: #e9f5ff; padding: 1rem; border-radius: 10px; margin-bottom: 2rem;">
+                <p style="margin: 0;">Este dashboard permite visualizar y filtrar información sobre los alumnos de los cursos de CBA ME CAPACITA. 
+                Utilice los filtros para encontrar información específica y descargue los datos según sus necesidades.</p>
+            </div>
+            """, unsafe_allow_html=True)
 
-        # Crear filtros predictivos
-        filtros = crear_filtros_predictivos(df)
+            # Verificar configuración de Hugging Face
+            hf_token = verificar_configuracion()
+            if not hf_token:
+                st.stop()
 
-        # Aplicar filtros
-        df_filtrado = aplicar_filtros(df, filtros)
+            # Cargar datos desde Hugging Face
+            df = cargar_datos_huggingface(hf_token)
+            
+            # Verificar si se cargaron los datos correctamente
+            if df is None:
+                st.error("No se pudieron cargar los datos. Por favor, verifica el archivo y vuelve a intentarlo.")
+                st.stop()
+                return
 
-        # Mostrar tabla paginada
-        mostrar_tabla_paginada(df_filtrado)
+            # Crear filtros predictivos
+            filtros = crear_filtros_predictivos(df)
 
-        # Descargar datos filtrados
-        descargar_datos(df_filtrado)
+            # Aplicar filtros
+            df_filtrado = aplicar_filtros(df, filtros)
+
+            # Mostrar tabla paginada
+            mostrar_tabla_paginada(df_filtrado)
+
+            # Descargar datos filtrados
+            descargar_datos(df_filtrado)
+
+        with tab2:
+            comparar_cursos_main()
+        
         
         # Pie de página
         st.markdown("""
