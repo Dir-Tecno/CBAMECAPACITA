@@ -1074,3 +1074,187 @@ sqlalchemy.exc.OperationalError: (pymysql.err.OperationalError) (1054, "Unknown 
 (Background on this error at: https://sqlalche.me/e/20/e3q8)
 
 2025-04-28 16:01:02,411 - INFO - Configuración de Hugging Face cargada correctamente
+2025-04-29 12:35:45,686 - INFO - Configuración de Hugging Face cargada correctamente
+2025-04-29 12:35:45,689 - INFO - Descargando archivo desde Hugging Face: Dir-Tecno/CBAMECAPACITA
+2025-04-29 12:35:47,944 - INFO - Datos cargados exitosamente: 251288 registros
+2025-04-29 12:35:48,982 - ERROR - Error en la aplicación: Traceback (most recent call last):
+  File "/home/lucasalvador/Reportes/CBAMECAPACITA/src/pages/comparar_cursos.py", line 240, in main
+    st.set_page_config(
+  File "/home/lucasalvador/Reportes/CBAMECAPACITA/venv/lib/python3.12/site-packages/streamlit/runtime/metrics_util.py", line 409, in wrapped_func
+    result = non_optional_func(*args, **kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/lucasalvador/Reportes/CBAMECAPACITA/venv/lib/python3.12/site-packages/streamlit/commands/page_config.py", line 273, in set_page_config
+    ctx.enqueue(msg)
+  File "/home/lucasalvador/Reportes/CBAMECAPACITA/venv/lib/python3.12/site-packages/streamlit/runtime/scriptrunner_utils/script_run_context.py", line 180, in enqueue
+    raise StreamlitSetPageConfigMustBeFirstCommandError()
+streamlit.errors.StreamlitSetPageConfigMustBeFirstCommandError: `set_page_config()` can only be called once per app page, and must be called as the first Streamlit command in your script.
+
+For more information refer to the [docs](https://docs.streamlit.io/develop/api-reference/configuration/st.set_page_config).
+
+2025-04-29 12:36:00,629 - INFO - Configuración de Hugging Face cargada correctamente
+2025-04-29 12:36:01,550 - ERROR - Error en la aplicación: Traceback (most recent call last):
+  File "/home/lucasalvador/Reportes/CBAMECAPACITA/src/pages/comparar_cursos.py", line 240, in main
+    st.set_page_config(
+  File "/home/lucasalvador/Reportes/CBAMECAPACITA/venv/lib/python3.12/site-packages/streamlit/runtime/metrics_util.py", line 409, in wrapped_func
+    result = non_optional_func(*args, **kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/lucasalvador/Reportes/CBAMECAPACITA/venv/lib/python3.12/site-packages/streamlit/commands/page_config.py", line 273, in set_page_config
+    ctx.enqueue(msg)
+  File "/home/lucasalvador/Reportes/CBAMECAPACITA/venv/lib/python3.12/site-packages/streamlit/runtime/scriptrunner_utils/script_run_context.py", line 180, in enqueue
+    raise StreamlitSetPageConfigMustBeFirstCommandError()
+streamlit.errors.StreamlitSetPageConfigMustBeFirstCommandError: `set_page_config()` can only be called once per app page, and must be called as the first Streamlit command in your script.
+
+For more information refer to the [docs](https://docs.streamlit.io/develop/api-reference/configuration/st.set_page_config).
+
+2025-04-29 12:36:17,336 - INFO - Configuración de Hugging Face cargada correctamente
+2025-04-29 12:36:17,670 - INFO - Configuración de Hugging Face cargada correctamente
+2025-04-29 12:36:19,290 - ERROR - Error en la aplicación: Traceback (most recent call last):
+  File "/home/lucasalvador/Reportes/CBAMECAPACITA/src/pages/comparar_cursos.py", line 240, in main
+    st.set_page_config(
+  File "/home/lucasalvador/Reportes/CBAMECAPACITA/venv/lib/python3.12/site-packages/streamlit/runtime/metrics_util.py", line 409, in wrapped_func
+    result = non_optional_func(*args, **kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/lucasalvador/Reportes/CBAMECAPACITA/venv/lib/python3.12/site-packages/streamlit/commands/page_config.py", line 273, in set_page_config
+    ctx.enqueue(msg)
+  File "/home/lucasalvador/Reportes/CBAMECAPACITA/venv/lib/python3.12/site-packages/streamlit/runtime/scriptrunner_utils/script_run_context.py", line 180, in enqueue
+    raise StreamlitSetPageConfigMustBeFirstCommandError()
+streamlit.errors.StreamlitSetPageConfigMustBeFirstCommandError: `set_page_config()` can only be called once per app page, and must be called as the first Streamlit command in your script.
+
+For more information refer to the [docs](https://docs.streamlit.io/develop/api-reference/configuration/st.set_page_config).
+
+2025-04-29 12:36:19,432 - ERROR - Error en la aplicación: Traceback (most recent call last):
+  File "/home/lucasalvador/Reportes/CBAMECAPACITA/src/pages/comparar_cursos.py", line 240, in main
+    st.set_page_config(
+  File "/home/lucasalvador/Reportes/CBAMECAPACITA/venv/lib/python3.12/site-packages/streamlit/runtime/metrics_util.py", line 409, in wrapped_func
+    result = non_optional_func(*args, **kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/lucasalvador/Reportes/CBAMECAPACITA/venv/lib/python3.12/site-packages/streamlit/commands/page_config.py", line 273, in set_page_config
+    ctx.enqueue(msg)
+  File "/home/lucasalvador/Reportes/CBAMECAPACITA/venv/lib/python3.12/site-packages/streamlit/runtime/scriptrunner_utils/script_run_context.py", line 180, in enqueue
+    raise StreamlitSetPageConfigMustBeFirstCommandError()
+streamlit.errors.StreamlitSetPageConfigMustBeFirstCommandError: `set_page_config()` can only be called once per app page, and must be called as the first Streamlit command in your script.
+
+For more information refer to the [docs](https://docs.streamlit.io/develop/api-reference/configuration/st.set_page_config).
+
+2025-04-29 12:37:39,536 - ERROR - Error en configuración de página: `set_page_config()` can only be called once per app page, and must be called as the first Streamlit command in your script.
+
+For more information refer to the [docs](https://docs.streamlit.io/develop/api-reference/configuration/st.set_page_config).
+2025-04-29 12:37:39,540 - INFO - Configuración de Hugging Face cargada correctamente
+2025-04-29 12:37:40,759 - ERROR - Error en la aplicación: Traceback (most recent call last):
+  File "/home/lucasalvador/Reportes/CBAMECAPACITA/src/pages/comparar_cursos.py", line 300, in main
+    st.set_page_config(
+  File "/home/lucasalvador/Reportes/CBAMECAPACITA/venv/lib/python3.12/site-packages/streamlit/runtime/metrics_util.py", line 409, in wrapped_func
+    result = non_optional_func(*args, **kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/lucasalvador/Reportes/CBAMECAPACITA/venv/lib/python3.12/site-packages/streamlit/commands/page_config.py", line 273, in set_page_config
+    ctx.enqueue(msg)
+  File "/home/lucasalvador/Reportes/CBAMECAPACITA/venv/lib/python3.12/site-packages/streamlit/runtime/scriptrunner_utils/script_run_context.py", line 180, in enqueue
+    raise StreamlitSetPageConfigMustBeFirstCommandError()
+streamlit.errors.StreamlitSetPageConfigMustBeFirstCommandError: `set_page_config()` can only be called once per app page, and must be called as the first Streamlit command in your script.
+
+For more information refer to the [docs](https://docs.streamlit.io/develop/api-reference/configuration/st.set_page_config).
+
+2025-04-29 12:37:51,958 - ERROR - Error en configuración de página: `set_page_config()` can only be called once per app page, and must be called as the first Streamlit command in your script.
+
+For more information refer to the [docs](https://docs.streamlit.io/develop/api-reference/configuration/st.set_page_config).
+2025-04-29 12:37:51,966 - INFO - Configuración de Hugging Face cargada correctamente
+2025-04-29 12:37:52,884 - ERROR - Error en la aplicación: Traceback (most recent call last):
+  File "/home/lucasalvador/Reportes/CBAMECAPACITA/src/pages/comparar_cursos.py", line 288, in main
+    st.set_page_config(
+  File "/home/lucasalvador/Reportes/CBAMECAPACITA/venv/lib/python3.12/site-packages/streamlit/runtime/metrics_util.py", line 409, in wrapped_func
+    result = non_optional_func(*args, **kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/lucasalvador/Reportes/CBAMECAPACITA/venv/lib/python3.12/site-packages/streamlit/commands/page_config.py", line 273, in set_page_config
+    ctx.enqueue(msg)
+  File "/home/lucasalvador/Reportes/CBAMECAPACITA/venv/lib/python3.12/site-packages/streamlit/runtime/scriptrunner_utils/script_run_context.py", line 180, in enqueue
+    raise StreamlitSetPageConfigMustBeFirstCommandError()
+streamlit.errors.StreamlitSetPageConfigMustBeFirstCommandError: `set_page_config()` can only be called once per app page, and must be called as the first Streamlit command in your script.
+
+For more information refer to the [docs](https://docs.streamlit.io/develop/api-reference/configuration/st.set_page_config).
+
+2025-04-29 12:38:56,298 - ERROR - Error en configuración de página: `set_page_config()` can only be called once per app page, and must be called as the first Streamlit command in your script.
+
+For more information refer to the [docs](https://docs.streamlit.io/develop/api-reference/configuration/st.set_page_config).
+2025-04-29 12:38:56,302 - INFO - Configuración de Hugging Face cargada correctamente
+2025-04-29 12:39:07,640 - ERROR - Error en la aplicación: NoneType: None
+
+2025-04-29 12:39:29,881 - INFO - Configuración de Hugging Face cargada correctamente
+2025-04-29 12:39:30,177 - INFO - Configuración de Hugging Face cargada correctamente
+2025-04-29 12:44:03,912 - ERROR - Error en configuración de página: `set_page_config()` can only be called once per app page, and must be called as the first Streamlit command in your script.
+
+For more information refer to the [docs](https://docs.streamlit.io/develop/api-reference/configuration/st.set_page_config).
+2025-04-29 12:44:03,917 - INFO - Configuración de Hugging Face cargada correctamente
+2025-04-29 12:47:07,435 - INFO - Configuración de Hugging Face cargada correctamente
+2025-04-29 12:47:08,920 - INFO - Configuración de Hugging Face cargada correctamente
+2025-04-29 12:47:25,251 - INFO - Configuración de Hugging Face cargada correctamente
+2025-04-29 12:47:49,984 - INFO - Configuración de Hugging Face cargada correctamente
+2025-04-29 12:47:51,667 - INFO - Configuración de Hugging Face cargada correctamente
+2025-04-29 12:48:05,134 - INFO - Configuración de Hugging Face cargada correctamente
+2025-04-29 14:59:27,749 - ERROR - Error en configuración de página: `set_page_config()` can only be called once per app page, and must be called as the first Streamlit command in your script.
+
+For more information refer to the [docs](https://docs.streamlit.io/develop/api-reference/configuration/st.set_page_config).
+2025-04-29 14:59:27,752 - INFO - Configuración de Hugging Face cargada correctamente
+2025-04-29 14:59:27,754 - INFO - Descargando archivo desde Hugging Face: Dir-Tecno/CBAMECAPACITA
+2025-04-29 14:59:30,927 - INFO - Datos cargados exitosamente: 251288 registros
+2025-04-29 14:59:51,300 - INFO - Configuración de Hugging Face cargada correctamente
+2025-04-29 14:59:52,535 - INFO - Configuración de Hugging Face cargada correctamente
+2025-04-29 14:59:54,943 - INFO - Configuración de Hugging Face cargada correctamente
+2025-04-29 14:59:58,332 - INFO - Configuración de Hugging Face cargada correctamente
+2025-04-29 15:02:17,410 - INFO - Configuración de Hugging Face cargada correctamente
+2025-04-29 15:02:18,907 - INFO - Configuración de Hugging Face cargada correctamente
+2025-04-29 15:13:33,531 - ERROR - Error en configuración de página: `set_page_config()` can only be called once per app page, and must be called as the first Streamlit command in your script.
+
+For more information refer to the [docs](https://docs.streamlit.io/develop/api-reference/configuration/st.set_page_config).
+2025-04-29 15:13:33,536 - INFO - Configuración de Hugging Face cargada correctamente
+2025-04-29 15:14:12,513 - INFO - Configuración de Hugging Face cargada correctamente
+2025-04-29 15:15:30,162 - INFO - Configuración de Hugging Face cargada correctamente
+2025-04-29 15:15:51,808 - INFO - Configuración de Hugging Face cargada correctamente
+2025-04-29 15:16:38,362 - ERROR - Error en configuración de página: `set_page_config()` can only be called once per app page, and must be called as the first Streamlit command in your script.
+
+For more information refer to the [docs](https://docs.streamlit.io/develop/api-reference/configuration/st.set_page_config).
+2025-04-29 15:16:38,366 - INFO - Configuración de Hugging Face cargada correctamente
+2025-04-29 15:17:13,263 - INFO - Configuración de Hugging Face cargada correctamente
+2025-04-29 15:24:53,656 - ERROR - Error en configuración de página: `set_page_config()` can only be called once per app page, and must be called as the first Streamlit command in your script.
+
+For more information refer to the [docs](https://docs.streamlit.io/develop/api-reference/configuration/st.set_page_config).
+2025-04-29 15:24:53,660 - INFO - Configuración de Hugging Face cargada correctamente
+2025-04-29 15:25:40,058 - INFO - Configuración de Hugging Face cargada correctamente
+2025-04-29 15:26:00,939 - INFO - Configuración de Hugging Face cargada correctamente
+2025-04-29 15:26:28,560 - INFO - Configuración de Hugging Face cargada correctamente
+2025-04-29 15:26:29,728 - INFO - Configuración de Hugging Face cargada correctamente
+2025-04-29 15:31:27,435 - ERROR - Error en configuración de página: `set_page_config()` can only be called once per app page, and must be called as the first Streamlit command in your script.
+
+For more information refer to the [docs](https://docs.streamlit.io/develop/api-reference/configuration/st.set_page_config).
+2025-04-29 15:31:27,438 - INFO - Configuración de Hugging Face cargada correctamente
+2025-04-29 15:31:54,235 - INFO - Configuración de Hugging Face cargada correctamente
+2025-04-29 15:38:12,924 - ERROR - Error en configuración de página: `set_page_config()` can only be called once per app page, and must be called as the first Streamlit command in your script.
+
+For more information refer to the [docs](https://docs.streamlit.io/develop/api-reference/configuration/st.set_page_config).
+2025-04-29 15:38:12,930 - INFO - Configuración de Hugging Face cargada correctamente
+2025-04-29 15:38:20,619 - ERROR - Error al cargar equivalencias: Traceback (most recent call last):
+  File "/home/lucasalvador/Reportes/CBAMECAPACITA/src/pages/comparar_cursos.py", line 515, in mostrar_equivalencias_existentes
+    "Acción": st.column_config.ButtonColumn(
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: module 'streamlit.column_config' has no attribute 'ButtonColumn'
+
+2025-04-29 15:45:42,150 - ERROR - Error en configuración de página: `set_page_config()` can only be called once per app page, and must be called as the first Streamlit command in your script.
+
+For more information refer to the [docs](https://docs.streamlit.io/develop/api-reference/configuration/st.set_page_config).
+2025-04-29 15:45:42,154 - INFO - Configuración de Hugging Face cargada correctamente
+2025-04-29 15:45:42,158 - INFO - Descargando archivo desde Hugging Face: Dir-Tecno/CBAMECAPACITA
+2025-04-29 15:45:44,642 - INFO - Datos cargados exitosamente: 251288 registros
+2025-04-29 15:45:52,481 - ERROR - Error al cargar equivalencias: Traceback (most recent call last):
+  File "/home/lucasalvador/Reportes/CBAMECAPACITA/src/pages/comparar_cursos.py", line 515, in mostrar_equivalencias_existentes
+    "Acción": st.column_config.ButtonColumn(
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: module 'streamlit.column_config' has no attribute 'ButtonColumn'. Did you mean: 'JsonColumn'?
+
+2025-04-29 15:46:43,794 - ERROR - Error en configuración de página: `set_page_config()` can only be called once per app page, and must be called as the first Streamlit command in your script.
+
+For more information refer to the [docs](https://docs.streamlit.io/develop/api-reference/configuration/st.set_page_config).
+2025-04-29 15:46:43,799 - INFO - Configuración de Hugging Face cargada correctamente
+2025-04-29 15:47:15,156 - INFO - Configuración de Hugging Face cargada correctamente
+2025-04-29 15:54:40,053 - INFO - Configuración de Hugging Face cargada correctamente
+2025-04-29 15:55:00,698 - INFO - Configuración de Hugging Face cargada correctamente
+2025-04-29 15:55:47,344 - INFO - Configuración de Hugging Face cargada correctamente
+2025-04-29 15:55:56,848 - INFO - Configuración de Hugging Face cargada correctamente
