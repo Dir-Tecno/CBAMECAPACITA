@@ -1258,3 +1258,122 @@ For more information refer to the [docs](https://docs.streamlit.io/develop/api-r
 2025-04-29 15:55:00,698 - INFO - Configuración de Hugging Face cargada correctamente
 2025-04-29 15:55:47,344 - INFO - Configuración de Hugging Face cargada correctamente
 2025-04-29 15:55:56,848 - INFO - Configuración de Hugging Face cargada correctamente
+2025-04-30 12:46:35,334 - ERROR - Error en configuración de página: `set_page_config()` can only be called once per app page, and must be called as the first Streamlit command in your script.
+
+For more information refer to the [docs](https://docs.streamlit.io/develop/api-reference/configuration/st.set_page_config).
+2025-04-30 12:46:35,340 - INFO - Configuración de Hugging Face cargada correctamente
+2025-04-30 12:46:35,343 - INFO - Descargando archivo desde Hugging Face: Dir-Tecno/CBAMECAPACITA
+2025-04-30 12:46:37,579 - INFO - Datos cargados exitosamente: 251288 registros
+2025-04-30 12:52:45,368 - INFO - Configuración de Hugging Face cargada correctamente
+2025-04-30 12:53:20,189 - ERROR - Error en configuración de página: `set_page_config()` can only be called once per app page, and must be called as the first Streamlit command in your script.
+
+For more information refer to the [docs](https://docs.streamlit.io/develop/api-reference/configuration/st.set_page_config).
+2025-04-30 12:53:20,192 - INFO - Configuración de Hugging Face cargada correctamente
+2025-04-30 12:53:43,517 - INFO - Configuración de Hugging Face cargada correctamente
+2025-04-30 12:53:44,988 - INFO - Configuración de Hugging Face cargada correctamente
+2025-04-30 12:53:58,139 - INFO - Configuración de Hugging Face cargada correctamente
+2025-04-30 12:54:10,715 - INFO - Configuración de Hugging Face cargada correctamente
+2025-04-30 12:54:20,040 - INFO - Configuración de Hugging Face cargada correctamente
+2025-04-30 13:15:48,734 - ERROR - Error en configuración de página: `set_page_config()` can only be called once per app page, and must be called as the first Streamlit command in your script.
+
+For more information refer to the [docs](https://docs.streamlit.io/develop/api-reference/configuration/st.set_page_config).
+2025-04-30 13:15:48,740 - INFO - Configuración de Hugging Face cargada correctamente
+2025-04-30 13:16:59,542 - INFO - Configuración de Hugging Face cargada correctamente
+2025-04-30 13:17:00,533 - INFO - Configuración de Hugging Face cargada correctamente
+2025-04-30 13:17:01,232 - INFO - Configuración de Hugging Face cargada correctamente
+2025-04-30 13:19:10,443 - INFO - Configuración de Hugging Face cargada correctamente
+2025-04-30 13:20:09,079 - INFO - Configuración de Hugging Face cargada correctamente
+2025-04-30 13:20:45,410 - INFO - Configuración de Hugging Face cargada correctamente
+2025-04-30 13:20:57,661 - INFO - Configuración de Hugging Face cargada correctamente
+2025-04-30 13:21:13,880 - INFO - Configuración de Hugging Face cargada correctamente
+2025-04-30 13:21:28,701 - INFO - Configuración de Hugging Face cargada correctamente
+2025-04-30 13:21:45,752 - INFO - Configuración de Hugging Face cargada correctamente
+2025-04-30 13:26:05,074 - ERROR - Error en configuración de página: `set_page_config()` can only be called once per app page, and must be called as the first Streamlit command in your script.
+
+For more information refer to the [docs](https://docs.streamlit.io/develop/api-reference/configuration/st.set_page_config).
+2025-04-30 13:26:05,087 - INFO - Configuración de Hugging Face cargada correctamente
+2025-04-30 13:26:20,061 - INFO - Configuración de Hugging Face cargada correctamente
+2025-04-30 13:26:46,742 - INFO - Configuración de Hugging Face cargada correctamente
+2025-04-30 13:26:58,633 - INFO - Configuración de Hugging Face cargada correctamente
+2025-04-30 13:29:34,950 - ERROR - Error en configuración de página: `set_page_config()` can only be called once per app page, and must be called as the first Streamlit command in your script.
+
+For more information refer to the [docs](https://docs.streamlit.io/develop/api-reference/configuration/st.set_page_config).
+2025-04-30 13:29:34,953 - INFO - Configuración de Hugging Face cargada correctamente
+2025-04-30 13:29:39,981 - ERROR - Error general en la aplicación: Traceback (most recent call last):
+  File "/home/lucasalvador/Reportes/CBAMECAPACITA/app.py", line 459, in main
+    comparar_cursos_main()
+  File "/home/lucasalvador/Reportes/CBAMECAPACITA/src/pages/comparar_cursos.py", line 496, in main
+    marcar_equivalencias(df_historico, df_certificaciones)
+  File "/home/lucasalvador/Reportes/CBAMECAPACITA/src/pages/comparar_cursos.py", line 227, in marcar_equivalencias
+    curso['N_CURSO'].unique(),
+    ^^^^^
+UnboundLocalError: cannot access local variable 'curso' where it is not associated with a value
+
+2025-04-30 13:29:41,926 - ERROR - Error en configuración de página: `set_page_config()` can only be called once per app page, and must be called as the first Streamlit command in your script.
+
+For more information refer to the [docs](https://docs.streamlit.io/develop/api-reference/configuration/st.set_page_config).
+2025-04-30 13:29:41,929 - INFO - Configuración de Hugging Face cargada correctamente
+2025-04-30 13:29:46,779 - ERROR - Error general en la aplicación: Traceback (most recent call last):
+  File "/home/lucasalvador/Reportes/CBAMECAPACITA/app.py", line 459, in main
+    comparar_cursos_main()
+  File "/home/lucasalvador/Reportes/CBAMECAPACITA/src/pages/comparar_cursos.py", line 495, in main
+    marcar_equivalencias(df_historico, df_certificaciones)
+  File "/home/lucasalvador/Reportes/CBAMECAPACITA/src/pages/comparar_cursos.py", line 227, in marcar_equivalencias
+    curso['N_CURSO'].unique(),
+    ^^^^^
+UnboundLocalError: cannot access local variable 'curso' where it is not associated with a value
+
+2025-04-30 13:30:13,263 - INFO - Configuración de Hugging Face cargada correctamente
+2025-04-30 13:31:58,631 - INFO - Configuración de Hugging Face cargada correctamente
+2025-04-30 13:32:03,575 - ERROR - Error general en la aplicación: Traceback (most recent call last):
+  File "/home/lucasalvador/Reportes/CBAMECAPACITA/app.py", line 459, in main
+    comparar_cursos_main()
+  File "/home/lucasalvador/Reportes/CBAMECAPACITA/src/pages/comparar_cursos.py", line 495, in main
+    marcar_equivalencias(df_historico, df_certificaciones)
+  File "/home/lucasalvador/Reportes/CBAMECAPACITA/src/pages/comparar_cursos.py", line 227, in marcar_equivalencias
+    curso['N_CURSO'].unique(),
+    ^^^^^
+UnboundLocalError: cannot access local variable 'curso' where it is not associated with a value
+
+2025-04-30 13:32:05,048 - INFO - Configuración de Hugging Face cargada correctamente
+2025-04-30 13:32:38,359 - ERROR - Error en configuración de página: `set_page_config()` can only be called once per app page, and must be called as the first Streamlit command in your script.
+
+For more information refer to the [docs](https://docs.streamlit.io/develop/api-reference/configuration/st.set_page_config).
+2025-04-30 13:32:38,362 - INFO - Configuración de Hugging Face cargada correctamente
+2025-04-30 13:32:50,531 - INFO - Configuración de Hugging Face cargada correctamente
+2025-04-30 13:33:01,846 - INFO - Configuración de Hugging Face cargada correctamente
+2025-04-30 13:33:03,241 - INFO - Configuración de Hugging Face cargada correctamente
+2025-04-30 13:33:13,791 - INFO - Configuración de Hugging Face cargada correctamente
+2025-04-30 13:33:14,048 - INFO - Configuración de Hugging Face cargada correctamente
+2025-04-30 13:33:26,564 - INFO - Configuración de Hugging Face cargada correctamente
+2025-04-30 13:38:18,041 - ERROR - Error en configuración de página: `set_page_config()` can only be called once per app page, and must be called as the first Streamlit command in your script.
+
+For more information refer to the [docs](https://docs.streamlit.io/develop/api-reference/configuration/st.set_page_config).
+2025-04-30 13:38:18,047 - INFO - Configuración de Hugging Face cargada correctamente
+2025-04-30 13:40:39,971 - INFO - Configuración de Hugging Face cargada correctamente
+2025-04-30 13:40:50,994 - INFO - Configuración de Hugging Face cargada correctamente
+2025-04-30 13:41:00,375 - INFO - Configuración de Hugging Face cargada correctamente
+2025-04-30 13:46:23,501 - INFO - Configuración de Hugging Face cargada correctamente
+2025-04-30 13:46:24,589 - INFO - Configuración de Hugging Face cargada correctamente
+2025-04-30 13:49:33,113 - ERROR - Error en configuración de página: `set_page_config()` can only be called once per app page, and must be called as the first Streamlit command in your script.
+
+For more information refer to the [docs](https://docs.streamlit.io/develop/api-reference/configuration/st.set_page_config).
+2025-04-30 13:49:33,116 - INFO - Configuración de Hugging Face cargada correctamente
+2025-04-30 13:49:33,118 - INFO - Descargando archivo desde Hugging Face: Dir-Tecno/CBAMECAPACITA
+2025-04-30 13:49:35,730 - INFO - Datos cargados exitosamente: 251288 registros
+2025-04-30 13:49:50,682 - INFO - Configuración de Hugging Face cargada correctamente
+2025-04-30 13:50:02,693 - INFO - Configuración de Hugging Face cargada correctamente
+2025-04-30 13:53:46,775 - ERROR - Error en configuración de página: `set_page_config()` can only be called once per app page, and must be called as the first Streamlit command in your script.
+
+For more information refer to the [docs](https://docs.streamlit.io/develop/api-reference/configuration/st.set_page_config).
+2025-04-30 13:53:46,779 - INFO - Configuración de Hugging Face cargada correctamente
+2025-04-30 13:54:37,280 - ERROR - Error en configuración de página: `set_page_config()` can only be called once per app page, and must be called as the first Streamlit command in your script.
+
+For more information refer to the [docs](https://docs.streamlit.io/develop/api-reference/configuration/st.set_page_config).
+2025-04-30 13:54:37,284 - INFO - Configuración de Hugging Face cargada correctamente
+2025-04-30 13:55:25,300 - ERROR - Error en configuración de página: `set_page_config()` can only be called once per app page, and must be called as the first Streamlit command in your script.
+
+For more information refer to the [docs](https://docs.streamlit.io/develop/api-reference/configuration/st.set_page_config).
+2025-04-30 13:55:25,303 - INFO - Configuración de Hugging Face cargada correctamente
+2025-04-30 13:55:35,620 - INFO - Configuración de Hugging Face cargada correctamente
+2025-04-30 13:55:44,208 - INFO - Configuración de Hugging Face cargada correctamente

@@ -4,94 +4,166 @@ from sqlalchemy import create_engine, text
 import logging
 import traceback
 import sys
-import os
 
-# Configuración de la página - DEBE SER LA PRIMERA LLAMADA A STREAMLIT
+# Configuración de la página
 st.set_page_config(
-    page_title="Comparación de Cursos y Certificaciones",
+    page_title="Comparación de Cursos",
     page_icon="🔄",
     layout="wide"
 )
 
-# Estilo personalizado
+# Estilo con colores del Gobierno de la Provincia de Córdoba
 st.markdown("""
     <style>
+    /* Colores del Gobierno de Córdoba */
+    :root {
+        --cordoba-azul: #004A93;
+        --cordoba-celeste: #2E75B5;
+        --cordoba-gris: #58595B;
+        --cordoba-gris-claro: #D9D9D9;
+        --cordoba-rojo: #C00000;
+        --cordoba-verde: #00B050;
+        --cordoba-amarillo: #FFC000;
+    }
+    
     .main {
-        padding: 2rem;
-        background-color: #f9f9f9;
+        padding: 1.5rem;
+        background-color: #ffffff;
     }
+    
+    h1, h2, h3 {
+        color: var(--cordoba-azul);
+    }
+    
     .stButton>button {
-        width: 100%;
-        background-color: #0066cc;
+        background-color: var(--cordoba-azul);
         color: white;
-        border-radius: 5px;
-        padding: 0.75rem 1rem;
+        border: none;
+        border-radius: 4px;
+        padding: 0.5rem 1rem;
         font-weight: 500;
-        transition: all 0.3s ease;
     }
+    
     .stButton>button:hover {
-        background-color: #004c99;
-        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-        transform: translateY(-2px);
+        background-color: var(--cordoba-celeste);
     }
-    .stSelectbox {
-        margin-bottom: 1rem;
-    }
-    .stMultiSelect {
-        margin-bottom: 1rem;
-    }
-    .stDataFrame {
-        border: 1px solid #e6e6e6;
-        border-radius: 8px;
+    
+    .card {
+        background-color: #f8f9fa;
+        border-radius: 5px;
         padding: 1rem;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        margin-bottom: 1rem;
+        border: 1px solid var(--cordoba-gris-claro);
     }
-    .info-box {
-        background-color: #e9f5ff;
-        padding: 1.5rem;
-        border-radius: 10px;
-        border-left: 5px solid #0066cc;
-        margin-bottom: 2rem;
-        box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    
+    .header-container {
+        display: flex;
+        align-items: center;
+        margin-bottom: 1rem;
+        border-bottom: 2px solid var(--cordoba-azul);
+        padding-bottom: 0.5rem;
     }
-    .metric-card {
-        background-color: white;
-        padding: 1.5rem;
-        border-radius: 10px;
-        box-shadow: 0 3px 10px rgba(0,0,0,0.08);
-        transition: all 0.3s ease;
+    
+    .header-icon {
+        font-size: 1.5rem;
+        margin-right: 0.5rem;
+        color: var(--cordoba-azul);
     }
-    .metric-card:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-    }
-    .curso-badge {
-        display: inline-block;
-        background-color: #e6f2ff;
-        border: 1px solid #99ccff;
-        border-radius: 15px;
-        padding: 0.4rem 1rem;
-        margin: 0.3rem;
-        font-size: 0.9rem;
-        transition: all 0.2s ease;
-    }
-    .curso-badge:hover {
-        background-color: #cce5ff;
-        border-color: #66b3ff;
-    }
-    h1, h2, h3, h4, h5, h6 {
-        color: #2c3e50;
+    
+    .header-text {
+        font-size: 1.2rem;
         font-weight: 600;
+        color: var(--cordoba-azul);
     }
-    .stExpander {
-        border-radius: 8px;
-        box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    
+    .badge {
+        display: inline-block;
+        padding: 0.25rem 0.5rem;
+        background-color: var(--cordoba-celeste);
+        color: white;
+        border-radius: 4px;
+        margin: 0.2rem;
+        font-size: 0.8rem;
     }
+    
+    .info-text {
+        background-color: #e7f3fe;
+        border-left: 3px solid var(--cordoba-celeste);
+        padding: 0.8rem;
+        margin-bottom: 1rem;
+    }
+    
+    .success-text {
+        background-color: #e8f5e9;
+        border-left: 3px solid var(--cordoba-verde);
+        padding: 0.8rem;
+        margin-bottom: 1rem;
+    }
+    
+    .warning-text {
+        background-color: #fff8e1;
+        border-left: 3px solid var(--cordoba-amarillo);
+        padding: 0.8rem;
+        margin-bottom: 1rem;
+    }
+    
+    .error-text {
+        background-color: #ffebee;
+        border-left: 3px solid var(--cordoba-rojo);
+        padding: 0.8rem;
+        margin-bottom: 1rem;
+    }
+    
+    /* Estilo para los dataframes */
+    .stDataFrame {
+        border: 1px solid var(--cordoba-gris-claro);
+        border-radius: 5px;
+    }
+    
+    /* Estilo para los selectbox y multiselect */
+    .stSelectbox, .stMultiSelect {
+        border-radius: 4px;
+    }
+    
+    /* Logo del Gobierno */
+    .gobierno-logo {
+        text-align: center;
+        margin-bottom: 1rem;
+    }
+    
+    .gobierno-logo img {
+        max-width: 200px;
+    }
+    
+    /* Pie de página */
+    .footer {
+        text-align: center;
+        padding: 1rem;
+        margin-top: 2rem;
+        border-top: 1px solid var(--cordoba-gris-claro);
+        color: var(--cordoba-gris);
+        font-size: 0.8rem;
+    }
+    
+    /* Mejoras en los inputs */
     .stTextInput>div>div>input {
-        border-radius: 5px;
+        border: 1px solid var(--cordoba-gris-claro);
+        border-radius: 4px;
     }
-    .stDateInput>div>div>input {
-        border-radius: 5px;
+    
+    .stTextInput>div>div>input:focus {
+        border-color: var(--cordoba-azul);
+        box-shadow: 0 0 0 0.2rem rgba(0, 74, 147, 0.25);
+    }
+    
+    /* Mejoras en los botones de descarga */
+    .stDownloadButton>button {
+        background-color: var(--cordoba-celeste);
+        color: white;
+    }
+    
+    .stDownloadButton>button:hover {
+        background-color: var(--cordoba-azul);
     }
     </style>
 """, unsafe_allow_html=True)
@@ -125,12 +197,14 @@ def load_data():
         if engine is None:
             return None, None
 
-        # Cargar datos de la nueva tabla T_CURSOS_X_SECTOR en lugar de T_CURSOS_HISTORICO
+        # Cargar datos de cursos históricos
         query_historico = """
             SELECT DISTINCT cs.ID_CURSO, cs.N_CURSO, cs.ID_SECTOR, cs.N_SECTOR
             FROM T_CURSOS_X_SECTOR cs
             ORDER BY cs.N_CURSO
         """
+        
+        # Cargar datos de certificaciones
         query_certificaciones = """
             SELECT DISTINCT cl.ID_CERTIFICACION, cl.N_CERTIFICACION, cl.LUGAR_CURSADO 
             FROM T_CERTIF_X_LOCALIDAD cl
@@ -146,178 +220,367 @@ def load_data():
         st.error(f"Error al cargar los datos: {str(e)}")
         return None, None
 
-def mostrar_tabla_comparativa(df_historico, df_certificaciones):
-    # Crear dos columnas para las tablas
-    col1, col2 = st.columns(2)
-
+def mostrar_cursos_historicos(df_historico):
+    """Muestra la tabla de cursos históricos con filtros simplificados"""
+    st.markdown('<div class="header-container"><span class="header-icon">📚</span><span class="header-text">Cursos Históricos</span></div>', unsafe_allow_html=True)
+    
+    # Filtros simplificados en una línea
+    col1, col2 = st.columns([3, 1])
     with col1:
-        st.subheader("Histórico de Cursos")
-        
-        # Filtros mejorados para cursos históricos
-        with st.expander("Filtros Avanzados", expanded=False):
-            # Filtro por sector
-            sectores = ['Todos'] + sorted(df_historico['N_SECTOR'].unique().tolist())
-            sector_selected = st.selectbox("Filtrar por Sector", sectores, key="sector_filter")
-            
-            # Filtro por texto
-            busqueda_curso = st.text_input("Buscar curso histórico", key="busqueda_curso")
-            
-            # Ordenar por
-            orden_options = ["Nombre (A-Z)", "Nombre (Z-A)", "Sector (A-Z)", "Sector (Z-A)"]
-            orden_selected = st.selectbox("Ordenar por", orden_options, key="orden_historico")
-        
-        # Aplicar filtros
-        df_historico_filtrado = df_historico.copy()
-        
-        # Filtrar por sector
-        if sector_selected != 'Todos':
-            df_historico_filtrado = df_historico_filtrado[df_historico_filtrado['N_SECTOR'] == sector_selected]
-            
-        # Filtrar por texto
-        if busqueda_curso:
-            df_historico_filtrado = df_historico_filtrado[df_historico_filtrado['N_CURSO'].str.contains(busqueda_curso, case=False, na=False)]
-        
-        # Aplicar ordenamiento
-        if orden_selected == "Nombre (A-Z)":
-            df_historico_filtrado = df_historico_filtrado.sort_values('N_CURSO')
-        elif orden_selected == "Nombre (Z-A)":
-            df_historico_filtrado = df_historico_filtrado.sort_values('N_CURSO', ascending=False)
-        elif orden_selected == "Sector (A-Z)":
-            df_historico_filtrado = df_historico_filtrado.sort_values('N_SECTOR')
-        elif orden_selected == "Sector (Z-A)":
-            df_historico_filtrado = df_historico_filtrado.sort_values('N_SECTOR', ascending=False)
-            
-        # Mostrar contador de resultados
-        st.caption(f"Mostrando {len(df_historico_filtrado)} de {len(df_historico)} cursos")
-            
-        if not df_historico_filtrado.empty:
-            st.dataframe(
-                df_historico_filtrado,
-                use_container_width=True,
-                hide_index=True,
-                column_config={
-                    "ID_CURSO": st.column_config.NumberColumn("ID", format="%d"),
-                    "N_CURSO": st.column_config.TextColumn("Nombre del Curso"),
-                    "N_SECTOR": st.column_config.TextColumn("Sector")
-                }
-            )
-        else:
-            st.warning("No hay datos históricos disponibles con los filtros seleccionados")
-
+        busqueda_curso = st.text_input("🔍 Buscar curso", placeholder="Escriba para filtrar...")
     with col2:
-        st.subheader("Certificaciones Actuales")
+        sector_options = ['Todos'] + sorted(df_historico['N_SECTOR'].unique().tolist())
+        sector_selected = st.selectbox("Sector", sector_options)
+    
+    # Aplicar filtros
+    df_filtrado = df_historico.copy()
+    
+    if sector_selected != 'Todos':
+        df_filtrado = df_filtrado[df_filtrado['N_SECTOR'] == sector_selected]
         
-        # Filtros mejorados para certificaciones
-        with st.expander("Filtros Avanzados", expanded=False):
-            # Filtro por lugar de cursado
-            lugares = ['Todos'] + sorted(df_certificaciones['LUGAR_CURSADO'].unique().tolist())
-            lugar_selected = st.selectbox("Filtrar por Lugar", lugares, key="lugar_filter")
-            
-            # Filtro por texto
-            busqueda_cert = st.text_input("Buscar certificación", key="busqueda_cert")
-            
-            # Ordenar por
-            orden_cert_options = ["Nombre (A-Z)", "Nombre (Z-A)", "Lugar (A-Z)", "Lugar (Z-A)"]
-            orden_cert_selected = st.selectbox("Ordenar por", orden_cert_options, key="orden_cert")
+    if busqueda_curso:
+        df_filtrado = df_filtrado[df_filtrado['N_CURSO'].str.contains(busqueda_curso, case=False, na=False)]
+    
+    # Mostrar resultados
+    st.caption(f"Mostrando {len(df_filtrado)} de {len(df_historico)} cursos")
+    
+    if not df_filtrado.empty:
+        st.dataframe(
+            df_filtrado,
+            use_container_width=True,
+            hide_index=True,
+            column_config={
+                "ID_CURSO": st.column_config.NumberColumn("ID", format="%d"),
+                "N_CURSO": st.column_config.TextColumn("Nombre del Curso"),
+                "N_SECTOR": st.column_config.TextColumn("Sector")
+            }
+        )
+    else:
+        st.info("No se encontraron cursos con los filtros aplicados")
+
+def mostrar_certificaciones(df_certificaciones):
+    """Muestra la tabla de certificaciones con filtros simplificados"""
+    st.markdown('<div class="header-container"><span class="header-icon">🏆</span><span class="header-text">Certificaciones Actuales</span></div>', unsafe_allow_html=True)
+    
+    # Filtros simplificados en una línea
+    col1, col2 = st.columns([3, 1])
+    with col1:
+        busqueda_cert = st.text_input("🔍 Buscar certificación", placeholder="Escriba para filtrar...")
+    with col2:
+        lugar_options = ['Todos'] + sorted(df_certificaciones['LUGAR_CURSADO'].unique().tolist())
+        lugar_selected = st.selectbox("Lugar", lugar_options)
+    
+    # Aplicar filtros
+    df_filtrado = df_certificaciones.copy()
+    
+    if lugar_selected != 'Todos':
+        df_filtrado = df_filtrado[df_filtrado['LUGAR_CURSADO'] == lugar_selected]
         
-        # Aplicar filtros
-        df_certificaciones_filtrado = df_certificaciones.copy()
-        
-        # Filtrar por lugar
-        if lugar_selected != 'Todos':
-            df_certificaciones_filtrado = df_certificaciones_filtrado[df_certificaciones_filtrado['LUGAR_CURSADO'] == lugar_selected]
-            
-        # Filtrar por texto
-        if busqueda_cert:
-            df_certificaciones_filtrado = df_certificaciones_filtrado[
-                df_certificaciones_filtrado['N_CERTIFICACION'].str.contains(busqueda_cert, case=False, na=False)
-            ]
-        
-        # Aplicar ordenamiento
-        if orden_cert_selected == "Nombre (A-Z)":
-            df_certificaciones_filtrado = df_certificaciones_filtrado.sort_values('N_CERTIFICACION')
-        elif orden_cert_selected == "Nombre (Z-A)":
-            df_certificaciones_filtrado = df_certificaciones_filtrado.sort_values('N_CERTIFICACION', ascending=False)
-        elif orden_cert_selected == "Lugar (A-Z)":
-            df_certificaciones_filtrado = df_certificaciones_filtrado.sort_values('LUGAR_CURSADO')
-        elif orden_cert_selected == "Lugar (Z-A)":
-            df_certificaciones_filtrado = df_certificaciones_filtrado.sort_values('LUGAR_CURSADO', ascending=False)
-            
-        # Mostrar contador de resultados
-        st.caption(f"Mostrando {len(df_certificaciones_filtrado)} de {len(df_certificaciones)} certificaciones")
-            
-        if not df_certificaciones_filtrado.empty:
-            st.dataframe(
-                df_certificaciones_filtrado,
-                use_container_width=True,
-                hide_index=True,
-                column_config={
-                    "ID_CERTIFICACION": st.column_config.NumberColumn("ID", format="%d"),
-                    "N_CERTIFICACION": st.column_config.TextColumn("Nombre de Certificación"),
-                    "LUGAR_CURSADO": st.column_config.TextColumn("Lugar")
-                }
-            )
-        else:
-            st.warning("No hay certificaciones disponibles con los filtros seleccionados")
+    if busqueda_cert:
+        df_filtrado = df_filtrado[df_filtrado['N_CERTIFICACION'].str.contains(busqueda_cert, case=False, na=False)]
+    
+    # Mostrar resultados
+    st.caption(f"Mostrando {len(df_filtrado)} de {len(df_certificaciones)} certificaciones")
+    
+    if not df_filtrado.empty:
+        st.dataframe(
+            df_filtrado,
+            use_container_width=True,
+            hide_index=True,
+            column_config={
+                "ID_CERTIFICACION": st.column_config.NumberColumn("ID", format="%d"),
+                "N_CERTIFICACION": st.column_config.TextColumn("Nombre de Certificación"),
+                "LUGAR_CURSADO": st.column_config.TextColumn("Lugar")
+            }
+        )
+    else:
+        st.info("No se encontraron certificaciones con los filtros aplicados")
 
 def marcar_equivalencias(df_historico, df_certificaciones):
-    """Función para marcar equivalencias entre cursos históricos y certificaciones"""
-    st.subheader("Marcar Equivalencias")
+    st.markdown('<div class="header-container"><span class="header-icon">🔗</span><span class="header-text">Crear Equivalencias</span></div>', unsafe_allow_html=True)
     
-    # Crear dos columnas para la selección
-    col1, col2 = st.columns(2)
+    # Estilos adicionales para mejorar la presentación
+    st.markdown("""
+    <style>
+    /* Contenedor principal de equivalencias */
+    .equivalencias-container {
+        background-color: #f8f9fa;
+        border-radius: 8px;
+        border: 1px solid var(--cordoba-gris-claro);
+        padding: 1.5rem;
+        margin-bottom: 2rem;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+    }
     
-    with col1:
-        # Selector MÚLTIPLE de cursos históricos
-        cursos_historicos = st.multiselect(
-            "Seleccionar Cursos Históricos",
-            df_historico['N_CURSO'].unique(),
-            format_func=lambda x: f"{x}"  # Simplificar el formato
-        )
-        
-        if cursos_historicos:
-            st.markdown("**Detalles de los Cursos Históricos:**")
-            for curso in cursos_historicos:
-                curso_info = df_historico[df_historico['N_CURSO'] == curso].iloc[0]
-                st.markdown(f"""
-                <div class="curso-badge">
-                    <strong>{curso_info['N_CURSO']}</strong> - Sector: {curso_info['N_SECTOR']}
-                </div>
-                """, unsafe_allow_html=True)
+    /* Secciones dentro del contenedor */
+    .equivalencias-section {
+        margin-bottom: 1.5rem;
+    }
     
-    with col2:
-        # Selector de certificación con búsqueda
-        certificacion = st.selectbox(
-            "Seleccionar Certificación",
-            df_certificaciones['N_CERTIFICACION'].unique(),
-            format_func=lambda x: f"{x}"  # Simplificar el formato
-        )
-        
-        if certificacion:
-            cert_info = df_certificaciones[df_certificaciones['N_CERTIFICACION'] == certificacion].iloc[0]
-            st.info(f"""
-            **Detalles de la Certificación:**
-            - Certificación: {cert_info['N_CERTIFICACION']}
-            - Lugar: {cert_info['LUGAR_CURSADO']}
-            """)
+    /* Título de sección */
+    .section-title {
+        color: var(--cordoba-azul);
+        font-weight: 600;
+        font-size: 1.1rem;
+        margin-bottom: 0.8rem;
+        border-bottom: 1px solid var(--cordoba-celeste);
+        padding-bottom: 0.5rem;
+    }
     
-    # Agregar campo para observaciones personalizadas
-    observacion = st.text_area(
-        "Observaciones (opcional)",
-        value="",
-        placeholder="Ingrese observaciones sobre esta equivalencia...",
-        help="Puede dejar comentarios o notas sobre esta equivalencia"
+    /* Contenedor de selecciones */
+    .selecciones-container {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+        background-color: white;
+        border-radius: 6px;
+        padding: 1rem;
+        border: 1px solid #e0e0e0;
+    }
+    
+    /* Tarjeta de selección */
+    .seleccion-card {
+        background-color: #f0f7ff;
+        border-left: 4px solid var(--cordoba-celeste);
+        border-radius: 6px;
+        padding: 1rem;
+        margin-bottom: 1rem;
+    }
+    
+    /* Título de tarjeta */
+    .card-title {
+        font-weight: 600;
+        color: var(--cordoba-azul);
+        margin-bottom: 0.5rem;
+        display: flex;
+        align-items: center;
+    }
+    
+    .card-title-icon {
+        margin-right: 0.5rem;
+        font-size: 1.2rem;
+    }
+    
+    /* Contenedor de badges */
+    .badges-container {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+        margin-top: 0.5rem;
+    }
+    
+    /* Badge mejorado */
+    .badge-item {
+        display: inline-flex;
+        align-items: center;
+        background-color: var(--cordoba-celeste);
+        color: white;
+        padding: 0.4rem 0.8rem;
+        border-radius: 20px;
+        font-size: 0.85rem;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        transition: all 0.2s ease;
+    }
+    
+    .badge-item:hover {
+        background-color: var(--cordoba-azul);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+    }
+    
+    /* Resumen de equivalencia */
+    .resumen-equivalencia {
+        background-color: #e8f5e9;
+        border-left: 4px solid var(--cordoba-verde);
+        border-radius: 6px;
+        padding: 1rem;
+        margin: 1.5rem 0;
+    }
+    
+    /* Botón de acción */
+    .action-button {
+        background-color: var(--cordoba-azul);
+        color: white;
+        border: none;
+        border-radius: 6px;
+        padding: 0.8rem 1.5rem;
+        font-weight: 500;
+        cursor: pointer;
+        width: 100%;
+        text-align: center;
+        transition: background-color 0.3s ease;
+        margin-top: 1rem;
+    }
+    
+    .action-button:hover {
+        background-color: var(--cordoba-celeste);
+    }
+    
+    /* Mensaje de éxito animado */
+    @keyframes slideIn {
+        from { opacity: 0; transform: translateY(-20px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    
+    .success-message {
+        background-color: var(--cordoba-verde);
+        color: white;
+        border-radius: 6px;
+        padding: 1.2rem;
+        text-align: center;
+        margin: 1.5rem 0;
+        animation: slideIn 0.5s ease-out;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    }
+    
+    .success-title {
+        font-size: 1.2rem;
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+    }
+    
+    /* Tooltip mejorado */
+    .tooltip {
+        position: relative;
+        display: inline-block;
+        cursor: help;
+    }
+    
+    .tooltip .tooltip-text {
+        visibility: hidden;
+        width: 200px;
+        background-color: var(--cordoba-azul);
+        color: white;
+        text-align: center;
+        border-radius: 6px;
+        padding: 0.5rem;
+        position: absolute;
+        z-index: 1;
+        bottom: 125%;
+        left: 50%;
+        margin-left: -100px;
+        opacity: 0;
+        transition: opacity 0.3s;
+        font-size: 0.8rem;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+    }
+    
+    .tooltip:hover .tooltip-text {
+        visibility: visible;
+        opacity: 1;
+    }
+    </style>
+    """, unsafe_allow_html=True)
+    
+    # Instrucciones iniciales
+    st.markdown("""
+    <div class="info-text">
+        <span class="tooltip">
+            Seleccione uno o más cursos históricos y una certificación para crear equivalencias
+            <span class="tooltip-text">Las equivalencias permiten reconocer cursos históricos como parte de certificaciones actuales</span>
+        </span>
+    </div>
+    """, unsafe_allow_html=True)
+    
+    
+    # Sección de selección de cursos
+    st.markdown('<div class="equivalencias-section">', unsafe_allow_html=True)
+    st.markdown('<div class="section-title">Paso 1: Seleccionar cursos históricos</div>', unsafe_allow_html=True)
+    
+    # Selector de cursos históricos
+    cursos_historicos = st.multiselect(
+        "🔍 Buscar y seleccionar cursos históricos",
+        df_historico['N_CURSO'].unique(),
+        format_func=lambda x: f"{x}",
+        help="Seleccione uno o más cursos históricos para crear equivalencias"
     )
     
-    # Botón para guardar la equivalencia
-    if st.button("Guardar Equivalencias"):
+    # Mostrar cursos seleccionados en un diseño mejorado
+    if cursos_historicos:
+        st.markdown('<div class="seleccion-card">', unsafe_allow_html=True)
+        st.markdown('<div class="card-title"><span class="card-title-icon">📚</span> Cursos seleccionados</div>', unsafe_allow_html=True)
+        st.markdown('<div class="badges-container">', unsafe_allow_html=True)
+        
+        for curso in cursos_historicos:
+            curso_info = df_historico[df_historico['N_CURSO'] == curso].iloc[0]
+            st.markdown(f"""
+            <div class="badge-item" title="Sector: {curso_info['N_SECTOR']}">
+                {curso_info['N_CURSO']}
+            </div>
+            """, unsafe_allow_html=True)
+            
+        st.markdown('</div></div>', unsafe_allow_html=True)
+    
+    st.markdown('</div>', unsafe_allow_html=True)  # Cierre de sección de cursos
+    
+    # Sección de selección de certificación
+    st.markdown('<div class="equivalencias-section">', unsafe_allow_html=True)
+    st.markdown('<div class="section-title">Paso 2: Seleccionar certificación</div>', unsafe_allow_html=True)
+    
+    # Selector de certificación
+    certificacion = st.selectbox(
+        "🔍 Buscar y seleccionar certificación",
+        df_certificaciones['N_CERTIFICACION'].unique(),
+        format_func=lambda x: f"{x}",
+        help="Seleccione la certificación actual a la que equivalen los cursos históricos"
+    )
+    
+    # Mostrar certificación seleccionada en un diseño mejorado
+    if certificacion:
+        cert_info = df_certificaciones[df_certificaciones['N_CERTIFICACION'] == certificacion].iloc[0]
+        st.markdown(f"""
+        <div class="seleccion-card">
+            <div class="card-title"><span class="card-title-icon">🏆</span> Certificación seleccionada</div>
+            <p><strong>Nombre:</strong> {cert_info["N_CERTIFICACION"]}</p>
+            <p><strong>Lugar:</strong> {cert_info["LUGAR_CURSADO"]}</p>
+        </div>
+        """, unsafe_allow_html=True)
+    
+    st.markdown('</div>', unsafe_allow_html=True)  # Cierre de sección de certificación
+    
+    # Sección de observaciones
+    st.markdown('<div class="equivalencias-section">', unsafe_allow_html=True)
+    st.markdown('<div class="section-title">Paso 3: Agregar observaciones (opcional)</div>', unsafe_allow_html=True)
+    
+    # Campo de observaciones
+    observacion = st.text_area(
+        "Observaciones",
+        placeholder="Ingrese observaciones sobre esta equivalencia...",
+        help="Puede agregar notas o aclaraciones sobre esta equivalencia"
+    )
+    
+    st.markdown('</div>', unsafe_allow_html=True)  # Cierre de sección de observaciones
+    
+    # Resumen de la equivalencia a crear
+    if cursos_historicos and certificacion:
+        st.markdown(f"""
+        <div class="resumen-equivalencia">
+            <div class="card-title"><span class="card-title-icon">📋</span> Resumen de equivalencia</div>
+            <p>Se establecerá que <strong>{len(cursos_historicos)} curso(s)</strong> histórico(s) son equivalentes a la certificación <strong>"{certificacion}"</strong>.</p>
+            <p><strong>Observaciones:</strong> {observacion if observacion.strip() else "Sin observaciones adicionales"}</p>
+        </div>
+        """, unsafe_allow_html=True)
+    
+    # Botón para guardar
+    guardar_btn = st.button(
+        "Guardar Equivalencias", 
+        use_container_width=True,
+        help="Guarda las equivalencias entre los cursos históricos y la certificación seleccionada"
+    )
+    
+    st.markdown('</div>', unsafe_allow_html=True)  # Cierre del contenedor principal
+    
+    # Contenedor para mensajes de resultado
+    resultado_container = st.empty()
+    
+    if guardar_btn:
         try:
             if not cursos_historicos:
-                st.warning("Debe seleccionar al menos un curso histórico.")
+                resultado_container.markdown('<div class="warning-text">Debe seleccionar al menos un curso histórico</div>', unsafe_allow_html=True)
                 return
                 
             if not certificacion:
-                st.warning("Debe seleccionar una certificación.")
+                resultado_container.markdown('<div class="warning-text">Debe seleccionar una certificación</div>', unsafe_allow_html=True)
                 return
                 
             # Si no se ingresó observación, usar un valor predeterminado
@@ -344,7 +607,7 @@ def marcar_equivalencias(df_historico, df_certificaciones):
                     id_cert_result = conn.execute(id_cert_query, {"cert": certificacion}).fetchone()
                     
                     if not id_cert_result:
-                        st.warning(f"No se encontró el ID para la certificación {certificacion}")
+                        resultado_container.markdown(f'<div class="warning-text">No se encontró el ID para la certificación {certificacion}</div>', unsafe_allow_html=True)
                         return
                     
                     id_certificacion = id_cert_result[0]
@@ -359,7 +622,7 @@ def marcar_equivalencias(df_historico, df_certificaciones):
                         id_curso_result = conn.execute(id_curso_query, {"curso": curso_historico}).fetchone()
                         
                         if not id_curso_result:
-                            st.warning(f"No se encontró el ID para el curso {curso_historico}")
+                            resultado_container.markdown(f'<div class="warning-text">No se encontró el ID para el curso {curso_historico}</div>', unsafe_allow_html=True)
                             continue
                         
                         id_curso = id_curso_result[0]
@@ -374,13 +637,12 @@ def marcar_equivalencias(df_historico, df_certificaciones):
                             AND ee.N_ESTADO = 'ACTIVO'
                         """)
                         result = conn.execute(check_sql, {"id_curso": id_curso, "id_cert": id_certificacion}).fetchone()
-
                         
                         if result:
                             existentes += 1
                             continue
                         
-                        #Insertar nueva equivalencia con los nuevos nombres de campos
+                        # Insertar nueva equivalencia
                         sql = text("""
                             INSERT INTO T_EQUIVALENCIAS_CURSOS 
                             (ID_CURSO_HISTORICO, N_CURSO_HISTORICO, ID_CERTIF_ACTUAL, N_CERTIF_ACTUAL, OBSERVACIONES, ID_ESTADO)
@@ -399,18 +661,37 @@ def marcar_equivalencias(df_historico, df_certificaciones):
                         
                     conn.commit()
                     
+                # Mensaje de éxito mejorado y más visual
                 if nuevas > 0:
-                    st.success(f"¡Se guardaron {nuevas} nuevas equivalencias exitosamente!")
+                    # Mensaje de éxito animado y destacado
+                    resultado_container.markdown(f"""
+                    <div class="success-message">
+                        <div class="success-title">✅ ¡Equivalencias guardadas con éxito!</div>
+                        <p>Se crearon {nuevas} nuevas equivalencias</p>
+                    </div>
+                    
+                    <div class="seleccion-card" style="background-color: #e8f5e9; border-left-color: var(--cordoba-verde);">
+                        <div class="card-title"><span class="card-title-icon">📋</span> Detalle de la operación</div>
+                        <p><strong>Cursos históricos:</strong> {", ".join(cursos_historicos)}</p>
+                        <p><strong>Certificación:</strong> {certificacion}</p>
+                        <p><strong>Observaciones:</strong> {observacion}</p>
+                        <p><strong>Fecha y hora:</strong> {pd.Timestamp.now().strftime("%d/%m/%Y %H:%M:%S")}</p>
+                    </div>
+                    """, unsafe_allow_html=True)
+                    
                 if existentes > 0:
-                    st.info(f"{existentes} equivalencias ya existían y no fueron modificadas.")
+                    st.markdown(f'<div class="info-text">{existentes} equivalencias ya existían y no fueron modificadas</div>', unsafe_allow_html=True)
+                
                 if nuevas == 0 and existentes > 0:
-                    st.warning("Todas las equivalencias seleccionadas ya existían.")
+                    resultado_container.markdown('<div class="warning-text">Todas las equivalencias seleccionadas ya existían</div>', unsafe_allow_html=True)
         except Exception as e:
-            st.error(f"Error al guardar las equivalencias: {str(e)}")
+            resultado_container.markdown(f'<div class="error-text">Error al guardar las equivalencias: {str(e)}</div>', unsafe_allow_html=True)
             logger.error(f"Error al guardar equivalencias: {traceback.format_exc()}")
 
 def mostrar_equivalencias_existentes():
-    """Función para mostrar las equivalencias existentes"""
+    """Función simplificada para mostrar equivalencias existentes"""
+    st.markdown('<div class="header-container"><span class="header-icon">📋</span><span class="header-text">Equivalencias Existentes</span></div>', unsafe_allow_html=True)
+    
     try:
         engine = get_database_connection()
         if engine is not None:
@@ -431,69 +712,24 @@ def mostrar_equivalencias_existentes():
             """
             df_equivalencias = pd.read_sql(query, engine)
             
-            st.subheader("Equivalencias Existentes")
+            # Filtros simplificados
+            busqueda = st.text_input("🔍 Buscar equivalencia", placeholder="Buscar por curso o certificación...")
             
-            # Filtros para equivalencias existentes
-            with st.expander("Filtros de Equivalencias", expanded=False):
-                # Filtro por curso histórico
-                if not df_equivalencias.empty:
-                    cursos_eq = ['Todos'] + sorted(df_equivalencias['curso_historico'].unique().tolist())
-                    curso_eq_selected = st.selectbox("Filtrar por Curso Histórico", cursos_eq, key="curso_eq_filter")
-                    
-                    # Filtro por certificación
-                    certs_eq = ['Todas'] + sorted(df_equivalencias['certificacion_actual'].unique().tolist())
-                    cert_eq_selected = st.selectbox("Filtrar por Certificación", certs_eq, key="cert_eq_filter")
-                    
-                    # Filtro por sector
-                    sectores_eq = ['Todos'] + sorted(df_equivalencias['sector_curso'].dropna().unique().tolist())
-                    sector_eq_selected = st.selectbox("Filtrar por Sector", sectores_eq, key="sector_eq_filter")
-                    
-                    # Filtro por fecha
-                    col1, col2 = st.columns(2)
-                    with col1:
-                        fecha_desde = st.date_input("Desde", value=None, key="fecha_desde")
-                    with col2:
-                        fecha_hasta = st.date_input("Hasta", value=None, key="fecha_hasta")
-            
-            # Aplicar filtros a equivalencias
+            # Aplicar filtro de búsqueda
             df_eq_filtrado = df_equivalencias.copy()
+            if busqueda:
+                df_eq_filtrado = df_eq_filtrado[
+                    df_eq_filtrado['curso_historico'].str.contains(busqueda, case=False, na=False) |
+                    df_eq_filtrado['certificacion_actual'].str.contains(busqueda, case=False, na=False)
+                ]
             
-            if not df_equivalencias.empty:
-                # Filtrar por curso histórico
-                if curso_eq_selected != 'Todos':
-                    df_eq_filtrado = df_eq_filtrado[df_eq_filtrado['curso_historico'] == curso_eq_selected]
-                    
-                # Filtrar por certificación
-                if cert_eq_selected != 'Todas':
-                    df_eq_filtrado = df_eq_filtrado[df_eq_filtrado['certificacion_actual'] == cert_eq_selected]
-                    
-                # Filtrar por sector
-                if sector_eq_selected != 'Todos':
-                    df_eq_filtrado = df_eq_filtrado[df_eq_filtrado['sector_curso'] == sector_eq_selected]
-                    
-                # Filtrar por fecha
-                if fecha_desde:
-                    df_eq_filtrado = df_eq_filtrado[df_eq_filtrado['fecha_creacion'].dt.date >= fecha_desde]
-                if fecha_hasta:
-                    df_eq_filtrado = df_eq_filtrado[df_eq_filtrado['fecha_creacion'].dt.date <= fecha_hasta]
-                
-                # Mostrar contador de resultados
-                st.caption(f"Mostrando {len(df_eq_filtrado)} de {len(df_equivalencias)} equivalencias")
+            # Mostrar contador de resultados
+            st.caption(f"Mostrando {len(df_eq_filtrado)} de {len(df_equivalencias)} equivalencias")
             
             if df_equivalencias.empty:
-                st.info("No hay equivalencias registradas aún.")
+                st.markdown('<div class="info-text">No hay equivalencias registradas aún. Utilice la sección "Crear Equivalencias" para comenzar.</div>', unsafe_allow_html=True)
             else:
-                # Botón para exportar a Excel
-                csv = df_eq_filtrado.to_csv(index=False).encode('utf-8')
-                st.download_button(
-                    label="Exportar a CSV",
-                    data=csv,
-                    file_name="equivalencias.csv",
-                    mime="text/csv",
-                    help="Descargar las equivalencias filtradas en formato CSV"
-                )
-                
-                # Mostrar tabla con mejoras visuales
+                # Mostrar tabla de equivalencias
                 st.dataframe(
                     df_eq_filtrado,
                     use_container_width=True,
@@ -504,115 +740,133 @@ def mostrar_equivalencias_existentes():
                         "sector_curso": st.column_config.TextColumn("Sector"),
                         "certificacion_actual": st.column_config.TextColumn("Certificación Actual"),
                         "fecha_creacion": st.column_config.DatetimeColumn(
-                            "Fecha de Equivalencia",
-                            format="DD/MM/YYYY HH:mm"
+                            "Fecha",
+                            format="DD/MM/YYYY"
                         ),
                         "observaciones": st.column_config.TextColumn("Observaciones"),
                         "estado": st.column_config.TextColumn("Estado")
                     }
                 )
                 
-                # Sección para eliminar equivalencias
-                st.subheader("Eliminar Equivalencia")
-                id_a_eliminar = st.number_input("ID de la equivalencia a eliminar", min_value=1, step=1)
+                # Exportar a CSV
+                csv = df_eq_filtrado.to_csv(index=False).encode('utf-8')
+                st.download_button(
+                    label="Exportar a CSV",
+                    data=csv,
+                    file_name="equivalencias.csv",
+                    mime="text/csv"
+                )
                 
-                if st.button("Eliminar Equivalencia"):
-                    # Verificar si el ID existe
-                    if id_a_eliminar in df_equivalencias['ID_EQUIVALENCIA'].values:
-                        # Mostrar confirmación
-                        st.warning(f"¿Está seguro de eliminar la equivalencia con ID {id_a_eliminar}?")
-                        col1, col2 = st.columns(2)
-                        with col1:
-                            if st.button("Confirmar Eliminación", key="confirm_delete"):
-                                try:
-                                    with engine.connect() as conn:
-                                        # Actualizar el estado a INACTIVO en lugar de eliminar físicamente
-                                        sql = text("""
-                                            UPDATE T_EQUIVALENCIAS_CURSOS 
-                                            SET ID_ESTADO = (SELECT ID_ESTADO FROM T_ESTADOS_EQUIVALENCIAS WHERE N_ESTADO = 'INACTIVO')
-                                            WHERE ID_EQUIVALENCIA = :id
-                                        """)
-                                        conn.execute(sql, {"id": id_a_eliminar})
-                                        conn.commit()
-                                    
-                                    st.success(f"Equivalencia con ID {id_a_eliminar} eliminada correctamente.")
-                                    st.experimental_rerun()
-                                except Exception as e:
-                                    st.error(f"Error al eliminar la equivalencia: {str(e)}")
-                                    logger.error(f"Error al eliminar equivalencia: {traceback.format_exc()}")
-                        with col2:
-                            if st.button("Cancelar", key="cancel_delete"):
+                # Sección para eliminar equivalencias
+                st.markdown('<div class="header-container"><span class="header-icon">🗑️</span><span class="header-text">Eliminar Equivalencia</span></div>', unsafe_allow_html=True)
+                
+                # Selector de ID con dropdown
+                ids_disponibles = df_eq_filtrado['ID_EQUIVALENCIA'].tolist()
+                if ids_disponibles:
+                    id_seleccionado = st.selectbox(
+                        "Seleccione la equivalencia a eliminar",
+                        options=ids_disponibles,
+                        format_func=lambda x: f"ID: {x} - {df_eq_filtrado[df_eq_filtrado['ID_EQUIVALENCIA'] == x]['curso_historico'].values[0]} → {df_eq_filtrado[df_eq_filtrado['ID_EQUIVALENCIA'] == x]['certificacion_actual'].values[0]}"
+                    )
+                    
+                    # Mostrar detalles de la equivalencia seleccionada
+                    if id_seleccionado:
+                        eq_seleccionada = df_eq_filtrado[df_eq_filtrado['ID_EQUIVALENCIA'] == id_seleccionado].iloc[0]
+                        st.markdown(f"""
+                        <div class="info-text">
+                        <strong>Curso:</strong> {eq_seleccionada['curso_historico']}<br>
+                        <strong>Sector:</strong> {eq_seleccionada['sector_curso'] if pd.notna(eq_seleccionada['sector_curso']) else 'No especificado'}<br>
+                        <strong>Certificación:</strong> {eq_seleccionada['certificacion_actual']}<br>
+                        <strong>Observaciones:</strong> {eq_seleccionada['observaciones']}
+                        </div>
+                        """, unsafe_allow_html=True)
+                        
+                        # Botón de eliminación
+                        if st.button("Eliminar Equivalencia", type="primary"):
+                            try:
+                                with engine.connect() as conn:
+                                    # Eliminar físicamente el registro
+                                    sql = text("""
+                                        DELETE FROM T_EQUIVALENCIAS_CURSOS 
+                                        WHERE ID_EQUIVALENCIA = :id
+                                    """)
+                                    conn.execute(sql, {"id": id_seleccionado})
+                                    conn.commit()
+                                
+                                st.markdown('<div class="success-text">Equivalencia eliminada correctamente</div>', unsafe_allow_html=True)
                                 st.experimental_rerun()
-                    else:
-                        st.error(f"No existe una equivalencia con el ID {id_a_eliminar}")
+                            except Exception as e:
+                                st.markdown(f'<div class="error-text">Error al eliminar la equivalencia: {str(e)}</div>', unsafe_allow_html=True)
+                                logger.error(f"Error al eliminar equivalencia: {traceback.format_exc()}")
     except Exception as e:
-        st.error(f"Error al cargar equivalencias existentes: {str(e)}")
-        logger.error(f"Error al cargar equivalencias: {traceback.format_exc()}")
+        st.markdown(f'<div class="error-text">Error al mostrar equivalencias existentes: {str(e)}</div>', unsafe_allow_html=True)
+        logger.error(f"Error al mostrar equivalencias: {traceback.format_exc()}")
 
 def main():
-    try:
-        # Encabezado con diseño mejorado
-        st.markdown("""
-            <h1 style='text-align: center; color: #0066cc; margin-bottom: 2rem;'>
-                🔄 Sistema de Equivalencias de Cursos
-            </h1>
-        """, unsafe_allow_html=True)
-        
-        # Descripción mejorada
-        st.markdown("""
-            <div class="info-box">
-                <h4 style='margin: 0; color: #0066cc;'>Acerca de esta herramienta</h4>
-                <p style='margin-top: 0.5rem;'>Esta herramienta permite establecer equivalencias entre cursos históricos y certificaciones actuales. 
-                Facilita la gestión y seguimiento de las correspondencias entre programas educativos.</p>
-            </div>
-        """, unsafe_allow_html=True)
-
-        # Cargar datos
-        df_historico, df_certificaciones = load_data()
-        
-        if df_historico is None or df_certificaciones is None:
-            st.error("No se pudieron cargar los datos. Por favor, verifica la conexión a la base de datos.")
-            return
-
-        # Métricas en tarjetas mejoradas
+    """Función principal con diseño mejorado"""
+    # Encabezado con logo
+    st.markdown("""
+    <div class="gobierno-logo">
+        <h1 style="color: #004A93;">Comparación de Cursos y Certificaciones</h1>
+        <p style="color: #58595B;">Sistema de Gestión de Capacitaciones - Gobierno de Córdoba</p>
+    </div>
+    """, unsafe_allow_html=True)
+    
+    # Cargar datos
+    df_historico, df_certificaciones = load_data()
+    
+    if df_historico is None or df_certificaciones is None:
+        st.error("No se pudieron cargar los datos. Por favor, verifica la conexión a la base de datos.")
+        return
+    
+    # Menú de navegación mejorado
+    menu = ["Explorar Cursos", "Crear Equivalencias", "Ver Equivalencias"]
+    
+    # Crear pestañas con estilo mejorado
+    col1, col2, col3 = st.columns(3)
+    with col1:
+        btn1 = st.button("📚 Explorar Cursos", use_container_width=True)
+    with col2:
+        btn2 = st.button("🔗 Crear Equivalencias", use_container_width=True)
+    with col3:
+        btn3 = st.button("📋 Ver Equivalencias", use_container_width=True)
+    
+    # Inicializar estado de sesión si no existe
+    if 'menu_option' not in st.session_state:
+        st.session_state.menu_option = "Explorar Cursos"
+    
+    # Actualizar opción según botón presionado
+    if btn1:
+        st.session_state.menu_option = "Explorar Cursos"
+    elif btn2:
+        st.session_state.menu_option = "Crear Equivalencias"
+    elif btn3:
+        st.session_state.menu_option = "Ver Equivalencias"
+    
+    st.markdown("<hr>", unsafe_allow_html=True)
+    
+    # Mostrar contenido según la opción seleccionada
+    if st.session_state.menu_option == "Explorar Cursos":
         col1, col2 = st.columns(2)
         with col1:
-            st.markdown(f"""
-                <div class="metric-card">
-                    <h3 style='margin: 0; color: #0066cc;'>Cursos Históricos</h3>
-                    <h2 style='margin: 0; margin-top: 0.5rem;'>{len(df_historico)}</h2>
-                </div>
-            """, unsafe_allow_html=True)
-        
+            mostrar_cursos_historicos(df_historico)
         with col2:
-            st.markdown(f"""
-                <div class="metric-card">
-                    <h3 style='margin: 0; color: #0066cc;'>Certificaciones</h3>
-                    <h2 style='margin: 0; margin-top: 0.5rem;'>{len(df_certificaciones)}</h2>
-                </div>
-            """, unsafe_allow_html=True)
-
-        # Separador visual
-        st.markdown("<hr style='margin: 2rem 0;'>", unsafe_allow_html=True)
-
-        # Mostrar tablas comparativas con diseño mejorado
-        mostrar_tabla_comparativa(df_historico, df_certificaciones)
-        
-        # Separador visual
-        st.markdown("<hr style='margin: 2rem 0;'>", unsafe_allow_html=True)
-        
-        # Sección para marcar equivalencias (solo una vez)
+            mostrar_certificaciones(df_certificaciones)
+    
+    elif st.session_state.menu_option == "Crear Equivalencias":
         marcar_equivalencias(df_historico, df_certificaciones)
-        
-        # Separador visual
-        st.markdown("<hr style='margin: 2rem 0;'>", unsafe_allow_html=True)
-        
-        # Mostrar tabla de equivalencias existentes al final
+    
+    elif st.session_state.menu_option == "Ver Equivalencias":
         mostrar_equivalencias_existentes()
+    
+    # Pie de página
+    st.markdown("""
+    <div class="footer">
+        <p>© 2025 Gobierno de la Provincia de Córdoba - Todos los derechos reservados</p>
+        <p>Sistema de Gestión de Capacitaciones</p>
+    </div>
+    """, unsafe_allow_html=True)
 
-    except Exception as e:
-        logger.error(f"Error en la aplicación: {traceback.format_exc()}")
-        st.error("Ha ocurrido un error inesperado. Por favor, intenta más tarde.")
-
+# Ejecutar la aplicación
 if __name__ == "__main__":
     main()
