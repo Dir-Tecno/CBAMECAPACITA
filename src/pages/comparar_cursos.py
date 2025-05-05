@@ -191,6 +191,32 @@ def get_database_connection():
         st.error(f"Error al conectar con la base de datos: {str(e)}")
         return None
 
+def eliminar_equivalencia_con_auditoria(engine, id_equivalencia, usuario):
+    """Elimina una equivalencia y registra la acción en la tabla de auditoría"""
+    with engine.connect() as conn:
+        conn.execute(
+            text("CALL FN_ELIMINA_EQUIVALENCIAS_AUDITA(:id_equivalencia, :usuario)"),
+            {"id_equivalencia": id_equivalencia, "usuario": usuario}
+        )
+        conn.commit()
+
+def crear_equivalencia_con_auditoria(engine, id_curso, n_curso, id_certificacion, n_certificacion, observaciones, usuario):
+    """Crea una equivalencia y registra la acción en la tabla de auditoría"""
+    with engine.connect() as conn:
+        result = conn.execute(
+            text("CALL FN_INSERTA_EQUIVALENCIA_AUDITA (:id_curso, :n_curso, :id_certificacion, :n_certificacion, :observaciones, :usuario)"),
+            {
+                "id_curso": id_curso,
+                "n_curso": n_curso,
+                "id_certificacion": id_certificacion,
+                "n_certificacion": n_certificacion,
+                "observaciones": observaciones,
+                "usuario": usuario
+            }
+        )
+        conn.commit()
+        return result.fetchone()
+
 def load_data():
     try:
         engine = get_database_connection()
@@ -573,120 +599,92 @@ def marcar_equivalencias(df_historico, df_certificaciones):
     # Contenedor para mensajes de resultado
     resultado_container = st.empty()
     
-    if guardar_btn:
-        try:
-            if not cursos_historicos:
-                resultado_container.markdown('<div class="warning-text">Debe seleccionar al menos un curso histórico</div>', unsafe_allow_html=True)
-                return
+    if guardar_btn: 
+        try: 
+            if not cursos_historicos: 
+                resultado_container.markdown('<div class="warning-text">Debe seleccionar al menos un curso histórico</div>', unsafe_allow_html=True) 
+                return 
                 
-            if not certificacion:
-                resultado_container.markdown('<div class="warning-text">Debe seleccionar una certificación</div>', unsafe_allow_html=True)
-                return
+            if not certificacion: 
+                resultado_container.markdown('<div class="warning-text">Debe seleccionar una certificación</div>', unsafe_allow_html=True) 
+                return 
                 
-            # Si no se ingresó observación, usar un valor predeterminado
-            if not observacion.strip():
-                if len(cursos_historicos) > 1:
-                    observacion = "Equivalencia múltiple"
-                else:
-                    observacion = "Equivalencia directa"
+            # Si no se ingresó observación, usar un valor predeterminado 
+            if not observacion.strip(): 
+                if len(cursos_historicos) > 1: 
+                    observacion = "Equivalencia múltiple" 
+                else: 
+                    observacion = "Equivalencia directa" 
                 
-            engine = get_database_connection()
-            if engine is not None:
-                # Insertar las equivalencias
-                with engine.connect() as conn:
-                    # Contador para equivalencias existentes y nuevas
-                    existentes = 0
-                    nuevas = 0
+            engine = get_database_connection() 
+            if engine is not None: 
+                # Insertar las equivalencias 
+                with engine.connect() as conn: 
+                    # Contador para equivalencias existentes y nuevas 
+                    existentes = 0 
+                    nuevas = 0 
                     
-                    # Obtener ID_CERTIFICACION
-                    id_cert_query = text("""
+                    # Obtener ID_CERTIFICACION y nombre 
+                    id_cert_query = text(""" 
                         SELECT ID_CERTIFICACION 
                         FROM T_CERTIF_X_LOCALIDAD 
-                        WHERE N_CERTIFICACION = :cert
-                    """)
-                    id_cert_result = conn.execute(id_cert_query, {"cert": certificacion}).fetchone()
+                        WHERE N_CERTIFICACION = :cert 
+                    """) 
+                    id_cert_result = conn.execute(id_cert_query, {"cert": certificacion}).fetchone() 
                     
-                    if not id_cert_result:
-                        resultado_container.markdown(f'<div class="warning-text">No se encontró el ID para la certificación {certificacion}</div>', unsafe_allow_html=True)
-                        return
+                    if not id_cert_result: 
+                        resultado_container.markdown(f'<div class="warning-text">No se encontró el ID para la certificación {certificacion}</div>', unsafe_allow_html=True) 
+                        return 
                     
-                    id_certificacion = id_cert_result[0]
+                    id_certificacion = id_cert_result[0] 
                     
-                    for curso_historico in cursos_historicos:
-                        # Obtener el ID_CURSO de la tabla T_CURSOS_X_SECTOR
-                        id_curso_query = text("""
+                    # Obtener el usuario actual (puedes adaptarlo según tu sistema de autenticación) 
+                    usuario_actual = "admin"  # Por defecto o desde sesión: st.session_state.get('usuario', 'sistema') 
+                    
+                    for curso_historico in cursos_historicos: 
+                        # Obtener el ID_CURSO 
+                        id_curso_query = text(""" 
                             SELECT ID_CURSO 
                             FROM T_CURSOS_X_SECTOR 
-                            WHERE N_CURSO = :curso
-                        """)
-                        id_curso_result = conn.execute(id_curso_query, {"curso": curso_historico}).fetchone()
+                            WHERE N_CURSO = :curso 
+                        """) 
+                        id_curso_result = conn.execute(id_curso_query, {"curso": curso_historico}).fetchone() 
                         
-                        if not id_curso_result:
-                            resultado_container.markdown(f'<div class="warning-text">No se encontró el ID para el curso {curso_historico}</div>', unsafe_allow_html=True)
-                            continue
-                        
-                        id_curso = id_curso_result[0]
-                        
-                        # Verificar si ya existe la equivalencia
-                        check_sql = text("""
-                            SELECT ID_EQUIVALENCIA 
-                            FROM T_EQUIVALENCIAS_CURSOS eq
-                            JOIN T_ESTADOS_EQUIVALENCIAS ee ON eq.ID_ESTADO = ee.ID_ESTADO
-                            WHERE eq.ID_CURSO_HISTORICO = :id_curso 
-                            AND eq.ID_CERTIF_ACTUAL = :id_cert 
-                            AND ee.N_ESTADO = 'ACTIVO'
-                        """)
-                        result = conn.execute(check_sql, {"id_curso": id_curso, "id_cert": id_certificacion}).fetchone()
-                        
-                        if result:
-                            existentes += 1
-                            continue
-                        
-                        # Insertar nueva equivalencia
-                        sql = text("""
-                            INSERT INTO T_EQUIVALENCIAS_CURSOS 
-                            (ID_CURSO_HISTORICO, N_CURSO_HISTORICO, ID_CERTIF_ACTUAL, N_CERTIF_ACTUAL, OBSERVACIONES, ID_ESTADO)
-                            VALUES (:id_curso, :curso, :id_cert, :cert, :obs, 
-                                (SELECT ID_ESTADO FROM T_ESTADOS_EQUIVALENCIAS WHERE N_ESTADO = 'ACTIVO')
-                            )
-                        """)
-                        conn.execute(sql, {
-                            "id_curso": id_curso,
-                            "curso": curso_historico,
-                            "id_cert": id_certificacion,
-                            "cert": certificacion,
-                            "obs": observacion
-                        })
-                        nuevas += 1
-                        
-                    conn.commit()
+                        if id_curso_result: 
+                            id_curso = id_curso_result[0] 
+                            
+                            # Usar el procedimiento almacenado para crear la equivalencia 
+                            result = crear_equivalencia_con_auditoria( 
+                                engine, 
+                                id_curso, 
+                                curso_historico, 
+                                id_certificacion, 
+                                certificacion, 
+                                observacion, 
+                                usuario_actual 
+                            ) 
+                            
+                            # Verificar el resultado 
+                            if result[1] == 'NUEVA': 
+                                nuevas += 1 
+                            else: 
+                                existentes += 1 
                     
-                # Mensaje de éxito mejorado y más visual
-                if nuevas > 0:
-                    # Mensaje de éxito animado y destacado
-                    resultado_container.markdown(f"""
-                    <div class="success-message">
-                        <div class="success-title">✅ ¡Equivalencias guardadas con éxito!</div>
-                        <p>Se crearon {nuevas} nuevas equivalencias</p>
-                    </div>
-                    
-                    <div class="seleccion-card" style="background-color: #e8f5e9; border-left-color: var(--cordoba-verde);">
-                        <div class="card-title"><span class="card-title-icon">📋</span> Detalle de la operación</div>
-                        <p><strong>Cursos históricos:</strong> {", ".join(cursos_historicos)}</p>
-                        <p><strong>Certificación:</strong> {certificacion}</p>
-                        <p><strong>Observaciones:</strong> {observacion}</p>
-                        <p><strong>Fecha y hora:</strong> {pd.Timestamp.now().strftime("%d/%m/%Y %H:%M:%S")}</p>
-                    </div>
-                    """, unsafe_allow_html=True)
-                    
-                if existentes > 0:
-                    st.markdown(f'<div class="info-text">{existentes} equivalencias ya existían y no fueron modificadas</div>', unsafe_allow_html=True)
-                
-                if nuevas == 0 and existentes > 0:
-                    resultado_container.markdown('<div class="warning-text">Todas las equivalencias seleccionadas ya existían</div>', unsafe_allow_html=True)
-        except Exception as e:
-            resultado_container.markdown(f'<div class="error-text">Error al guardar las equivalencias: {str(e)}</div>', unsafe_allow_html=True)
+                    # Mostrar mensaje de resultado 
+                    if nuevas > 0 or existentes > 0: 
+                        mensaje = f"<div class='success-text'>Proceso completado: {nuevas} equivalencias nuevas creadas" 
+                        if existentes > 0: 
+                            mensaje += f" y {existentes} ya existentes" 
+                        mensaje += ".</div>" 
+                        resultado_container.markdown(mensaje, unsafe_allow_html=True) 
+                    else: 
+                        resultado_container.markdown("<div class='warning-text'>No se pudo crear ninguna equivalencia.</div>", unsafe_allow_html=True) 
+        except Exception as e: 
+            resultado_container.markdown(f"<div class='error-text'>Error al guardar equivalencias: {str(e)}</div>", unsafe_allow_html=True) 
             logger.error(f"Error al guardar equivalencias: {traceback.format_exc()}")
+    else:   
+        resultado_container.markdown("<div class='warning-text'>Debe seleccionar al menos un curso histórico y una certificación.</div>", unsafe_allow_html=True)       
+
 
 def mostrar_equivalencias_existentes():
     """Función simplificada para mostrar equivalencias existentes"""
@@ -757,46 +755,43 @@ def mostrar_equivalencias_existentes():
                     mime="text/csv"
                 )
                 
-                # Sección para eliminar equivalencias
-                st.markdown('<div class="header-container"><span class="header-icon">🗑️</span><span class="header-text">Eliminar Equivalencia</span></div>', unsafe_allow_html=True)
+                # Sección para eliminar equivalencias 
+                st.markdown('<div class="header-container"><span class="header-icon">🗑️</span><span class="header-text">Eliminar Equivalencia</span></div>', unsafe_allow_html=True) 
                 
-                # Selector de ID con dropdown
-                ids_disponibles = df_eq_filtrado['ID_EQUIVALENCIA'].tolist()
-                if ids_disponibles:
-                    id_seleccionado = st.selectbox(
-                        "Seleccione la equivalencia a eliminar",
-                        options=ids_disponibles,
-                        format_func=lambda x: f"ID: {x} - {df_eq_filtrado[df_eq_filtrado['ID_EQUIVALENCIA'] == x]['curso_historico'].values[0]} → {df_eq_filtrado[df_eq_filtrado['ID_EQUIVALENCIA'] == x]['certificacion_actual'].values[0]}"
-                    )
+                # Selector de ID con dropdown 
+                ids_disponibles = df_eq_filtrado['ID_EQUIVALENCIA'].tolist() 
+                if ids_disponibles: 
+                    id_seleccionado = st.selectbox( 
+                        "Seleccione la equivalencia a eliminar", 
+                        options=ids_disponibles, 
+                        format_func=lambda x: f"ID: {x} - {df_eq_filtrado[df_eq_filtrado['ID_EQUIVALENCIA'] == x]['curso_historico'].values[0]} → {df_eq_filtrado[df_eq_filtrado['ID_EQUIVALENCIA'] == x]['certificacion_actual'].values[0]}" 
+                    ) 
                     
-                    # Mostrar detalles de la equivalencia seleccionada
-                    if id_seleccionado:
-                        eq_seleccionada = df_eq_filtrado[df_eq_filtrado['ID_EQUIVALENCIA'] == id_seleccionado].iloc[0]
-                        st.markdown(f"""
-                        <div class="info-text">
-                        <strong>Curso:</strong> {eq_seleccionada['curso_historico']}<br>
-                        <strong>Sector:</strong> {eq_seleccionada['sector_curso'] if pd.notna(eq_seleccionada['sector_curso']) else 'No especificado'}<br>
-                        <strong>Certificación:</strong> {eq_seleccionada['certificacion_actual']}<br>
-                        <strong>Observaciones:</strong> {eq_seleccionada['observaciones']}
-                        </div>
-                        """, unsafe_allow_html=True)
+                    # Mostrar detalles de la equivalencia seleccionada 
+                    if id_seleccionado: 
+                        eq_seleccionada = df_eq_filtrado[df_eq_filtrado['ID_EQUIVALENCIA'] == id_seleccionado].iloc[0] 
+                        st.markdown(f""" 
+                        <div class="info-text"> 
+                        <strong>Curso:</strong> {eq_seleccionada['curso_historico']}<br> 
+                        <strong>Sector:</strong> {eq_seleccionada['sector_curso'] if pd.notna(eq_seleccionada['sector_curso']) else 'No especificado'}<br> 
+                        <strong>Certificación:</strong> {eq_seleccionada['certificacion_actual']}<br> 
+                        <strong>Observaciones:</strong> {eq_seleccionada['observaciones']} 
+                        </div> 
+                        """, unsafe_allow_html=True) 
                         
-                        # Botón de eliminación
-                        if st.button("Eliminar Equivalencia", type="primary"):
-                            try:
-                                with engine.connect() as conn:
-                                    # Eliminar físicamente el registro
-                                    sql = text("""
-                                        DELETE FROM T_EQUIVALENCIAS_CURSOS 
-                                        WHERE ID_EQUIVALENCIA = :id
-                                    """)
-                                    conn.execute(sql, {"id": id_seleccionado})
-                                    conn.commit()
+                        # Botón de eliminación 
+                        if st.button("Eliminar Equivalencia", type="primary"): 
+                            try: 
+                                # Obtener el usuario actual (puedes adaptarlo según tu sistema de autenticación)
+                                usuario_actual = "admin"  # Por defecto o desde sesión: st.session_state.get('usuario', 'sistema')
                                 
-                                st.markdown('<div class="success-text">Equivalencia eliminada correctamente</div>', unsafe_allow_html=True)
-                                st.experimental_rerun()
-                            except Exception as e:
-                                st.markdown(f'<div class="error-text">Error al eliminar la equivalencia: {str(e)}</div>', unsafe_allow_html=True)
+                                # Llamar al procedimiento almacenado en lugar de hacer DELETE directo
+                                eliminar_equivalencia_con_auditoria(engine, id_seleccionado, usuario_actual)
+                                
+                                st.markdown('<div class="success-text">Equivalencia eliminada correctamente</div>', unsafe_allow_html=True) 
+                                st.rerun() 
+                            except Exception as e: 
+                                st.markdown(f'<div class="error-text">Error al eliminar la equivalencia: {str(e)}</div>', unsafe_allow_html=True) 
                                 logger.error(f"Error al eliminar equivalencia: {traceback.format_exc()}")
     except Exception as e:
         st.markdown(f'<div class="error-text">Error al mostrar equivalencias existentes: {str(e)}</div>', unsafe_allow_html=True)
