@@ -10,9 +10,9 @@ RUN apt-get update && apt-get install -y \
 # Establecer el directorio de trabajo
 WORKDIR /app
 
-# Clonar el repositorio y limpiar git
+# Clonar el repositorio manteniendo el historial de Git
 RUN git clone https://github.com/Dir-Tecno/CBAMECAPACITA.git . && \
-    rm -rf .git
+    git pull origin main
 
 # Crear directorios necesarios
 RUN mkdir -p /app/logs /app/.streamlit /app/src/pages /app/src/config /app/src/utils
