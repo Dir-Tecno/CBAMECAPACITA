@@ -46,7 +46,7 @@ ENV DB_USER="" \
     HUGGINGFACE_TOKEN=""
 
 # Exponer el puerto que usa Streamlit
-EXPOSE 8502
+EXPOSE 8501
 
 # Punto de entrada y comando
 ENTRYPOINT ["/app/entrypoint.sh"]

@@ -11,3 +11,4 @@ ENV/
 app_log.txt
 *.parquet
 *.csv
+git_token.txt
