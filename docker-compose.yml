@@ -15,10 +15,9 @@ services:
       - 8502:8501
     restart: unless-stopped
     networks:
-      - app-network
-      - front-net: 
+      front-net:
         ipv4_address: 172.21.0.3
 
 networks:
-    front-net:                #Gateway: 172.21.0.1
-       external: true
+  front-net:                #Gateway: 172.21.0.1
+    external: true
