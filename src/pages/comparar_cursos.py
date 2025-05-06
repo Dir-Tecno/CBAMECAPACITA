@@ -513,7 +513,7 @@ def marcar_equivalencias(df_historico, df_certificaciones):
     st.markdown('<div class="equivalencias-section">', unsafe_allow_html=True)
     st.markdown('<div class="section-title">Paso 1: Seleccionar cursos históricos</div>', unsafe_allow_html=True)
     
-    # Selector de cursos históricos
+            # Selector de cursos históricos
     cursos_historicos = st.multiselect(
         "🔍 Buscar y seleccionar cursos históricos",
         df_historico['N_CURSO'].unique(),
@@ -523,20 +523,17 @@ def marcar_equivalencias(df_historico, df_certificaciones):
     
     # Mostrar cursos seleccionados en un diseño mejorado
     if cursos_historicos:
-        st.markdown('<div class="seleccion-card">', unsafe_allow_html=True)
-        st.markdown('<div class="card-title"><span class="card-title-icon">📚</span> Cursos seleccionados</div>', unsafe_allow_html=True)
-        st.markdown('<div class="badges-container">', unsafe_allow_html=True)
         
         for curso in cursos_historicos:
             curso_info = df_historico[df_historico['N_CURSO'] == curso].iloc[0]
             st.markdown(f"""
-            <div class="badge-item" title="Sector: {curso_info['N_SECTOR']}">
-                {curso_info['N_CURSO']}
-            </div>
+            <div class="seleccion-card">
+            <div class="card-title"><span class="card-title-icon">📚</span> Cursos seleccionados</div> 
+            <p><strong>Nombre:</strong> {curso_info["N_CURSO"]}</p>
+            <p><strong>Sector:</strong> {curso_info["N_SECTOR"]}</p>
+            <hr style="margin: 0.5rem 0; border-color: #e0e0e0;">
             """, unsafe_allow_html=True)
             
-        st.markdown('</div></div>', unsafe_allow_html=True)
-    
     st.markdown('</div>', unsafe_allow_html=True)  # Cierre de sección de cursos
     
     # Sección de selección de certificación

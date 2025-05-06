@@ -16,7 +16,9 @@ services:
     restart: unless-stopped
     networks:
       - app-network
+      - front-net: 
+        ipv4_address: 172.21.0.3
 
 networks:
-  app-network:
-    driver: bridge
+    front-net:                #Gateway: 172.21.0.1
+       external: true

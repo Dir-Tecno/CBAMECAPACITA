@@ -2,3 +2,5 @@ venv/
 .env
 .streamlit
 git_token.txt
+app_log.txt
+comparacion_log.txt
