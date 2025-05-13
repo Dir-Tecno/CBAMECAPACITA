@@ -36,76 +36,80 @@ except Exception as e:
 # Aplicar estilos personalizados para mejorar la apariencia
 st.markdown("""
 <style>
-    /* Estilos generales */
-    .main {
-        background-color: #f8f9fa;
-        padding: 2rem;
+    :root {
+        --cordoba-azul: #004A93;
+        --cordoba-celeste: #2E75B5;
+        --cordoba-gris: #58595B;
+        --cordoba-gris-claro: #D9D9D9;
+        --cordoba-rojo: #C00000;
+        --cordoba-verde: #00B050;
+        --cordoba-amarillo: #FFC000;
     }
-    
-    /* Títulos y encabezados */
-    h1 {
-        color: #0066cc;
+    body, .main {
+        background: linear-gradient(135deg, #f8f9fa 0%, #e7f3fe 100%);
+        min-height: 100vh;
+    }
+    h1, h2, h3, .subheader {
+        color: var(--cordoba-azul);
         font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         font-weight: 700;
-        padding-bottom: 1rem;
-        border-bottom: 2px solid #0066cc;
-        margin-bottom: 2rem;
+        letter-spacing: 0.5px;
     }
-    
-    h2, h3, .subheader {
-        color: #0066cc;
-        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        margin-top: 1.5rem;
-        margin-bottom: 1rem;
+    .stButton > button {
+        background: linear-gradient(90deg, var(--cordoba-azul) 60%, var(--cordoba-celeste) 100%);
+        color: white;
+        border: none;
+        border-radius: 6px;
+        padding: 0.6rem 1.2rem;
+        font-weight: 600;
+        box-shadow: 0 2px 8px rgba(46,117,181,0.08);
+        transition: background 0.3s, box-shadow 0.3s;
     }
-    
-    /* Contenedores y tarjetas */
+    .stButton > button:hover {
+        background: linear-gradient(90deg, var(--cordoba-celeste) 60%, var(--cordoba-azul) 100%);
+        box-shadow: 0 4px 16px rgba(0,74,147,0.12);
+    }
+    .card {
+        background: #fff;
+        border-radius: 12px;
+        padding: 1.5rem 1.2rem;
+        margin-bottom: 1.5rem;
+        border: 1px solid var(--cordoba-gris-claro);
+        box-shadow: 0 2px 16px rgba(0,74,147,0.06);
+        transition: box-shadow 0.2s;
+    }
+    .card:hover {
+        box-shadow: 0 6px 24px rgba(0,74,147,0.12);
+    }
     .stDataFrame {
         border-radius: 10px;
         border: 1px solid #dee2e6;
         overflow: hidden;
         margin-bottom: 2rem;
+        box-shadow: 0 1px 8px rgba(0,74,147,0.07);
     }
-    
-    /* Botones */
-    .stButton > button {
-        background-color: #0066cc;
-        color: white;
-        border-radius: 5px;
-        border: none;
-        padding: 0.5rem 1rem;
-        font-weight: 500;
-        transition: all 0.3s;
-    }
-    
-    .stButton > button:hover {
-        background-color: #004c99;
-        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    }
-    
-    /* Inputs y selectores */
     .stTextInput > div > div > input,
     .stSelectbox > div > div > select {
-        border-radius: 5px;
+        border-radius: 6px;
         border: 1px solid #ced4da;
         padding: 0.5rem;
+        font-size: 1rem;
+        transition: border-color 0.2s, box-shadow 0.2s;
     }
-    
-    /* Sidebar */
+    .stTextInput > div > div > input:focus {
+        border-color: var(--cordoba-azul);
+        box-shadow: 0 0 0 0.2rem rgba(0, 74, 147, 0.15);
+    }
     .sidebar .sidebar-content {
         background-color: #f0f2f5;
         padding: 1rem;
     }
-    
-    /* Paginación */
     .pagination-info {
         text-align: center;
         font-weight: 500;
         margin: 1rem 0;
         color: #495057;
     }
-    
-    /* Contenedores de filtros */
     .filter-container {
         background-color: white;
         padding: 1.5rem;
@@ -113,24 +117,47 @@ st.markdown("""
         box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
         margin-bottom: 2rem;
     }
-    
-    /* Mensajes */
     .success-message {
         color: #28a745;
         font-weight: 500;
     }
-    
     .error-message {
         color: #dc3545;
         font-weight: 500;
     }
-    
-    /* Separadores */
     hr {
         margin: 2rem 0;
         border: 0;
         height: 1px;
         background-image: linear-gradient(to right, rgba(0, 0, 0, 0), rgba(0, 102, 204, 0.5), rgba(0, 0, 0, 0));
+    }
+    .footer {
+        text-align: center;
+        padding: 1.2rem;
+        margin-top: 2.5rem;
+        border-top: 1px solid var(--cordoba-gris-claro);
+        color: var(--cordoba-gris);
+        font-size: 0.9rem;
+        background: #f8f9fa;
+        border-radius: 0 0 12px 12px;
+    }
+    .stDownloadButton>button {
+        background: linear-gradient(90deg, var(--cordoba-celeste) 60%, var(--cordoba-azul) 100%);
+        color: white;
+        border-radius: 6px;
+        font-weight: 600;
+        transition: background 0.3s;
+    }
+    .stDownloadButton>button:hover {
+        background: linear-gradient(90deg, var(--cordoba-azul) 60%, var(--cordoba-celeste) 100%);
+    }
+    ::-webkit-scrollbar {
+        width: 10px;
+        background: #e7f3fe;
+    }
+    ::-webkit-scrollbar-thumb {
+        background: var(--cordoba-celeste);
+        border-radius: 6px;
     }
 </style>
 """, unsafe_allow_html=True)
@@ -153,9 +180,9 @@ def cargar_datos_huggingface(hf_token) -> pd.DataFrame:
         REPO_ID = "Dir-Tecno/CBAMECAPACITA"
         
         # Mostrar mensaje de carga
-        with st.spinner("Cargando datos desde Hugging Face..."):
+        with st.spinner("Cargando datos..."):
             # Descargamos el archivo desde Hugging Face
-            logger.info(f"Descargando archivo desde Hugging Face: {REPO_ID}")
+            logger.info(f"Descargando: {REPO_ID}")
             file_path = hf_hub_download(
                 REPO_ID, 
                 filename="ALUMNOS_X_LOCALIDAD.parquet", 
@@ -216,10 +243,6 @@ def cargar_datos_huggingface(hf_token) -> pd.DataFrame:
             finally:
                 # Limpieza de memoria
                 gc.collect()
-
-        # Mostrar mensaje de éxito con estilo personalizado
-        st.markdown(f"<div class='success-message'>✅ Datos cargados: {len(df)} registros</div>", unsafe_allow_html=True)
-        logging.info(f"Datos cargados exitosamente: {len(df)} registros")
         
         return df
         
@@ -464,7 +487,7 @@ def main():
         <hr>
         <div style="text-align: center; color: #6c757d; padding: 1rem;">
             <p>Desarrollado por la Dirección de Tecnología - Gobierno de la Provincia de Córdoba</p>
-            <p>© 2023 CBA ME CAPACITA</p>
+            <p>© 2025 CBA ME CAPACITA</p>
         </div>
         """, unsafe_allow_html=True)
 

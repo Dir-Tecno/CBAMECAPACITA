@@ -15,7 +15,6 @@ st.set_page_config(
 # Estilo con colores del Gobierno de la Provincia de Córdoba
 st.markdown("""
     <style>
-    /* Colores del Gobierno de Córdoba */
     :root {
         --cordoba-azul: #004A93;
         --cordoba-celeste: #2E75B5;
@@ -25,145 +24,158 @@ st.markdown("""
         --cordoba-verde: #00B050;
         --cordoba-amarillo: #FFC000;
     }
-    
-    .main {
-        padding: 1.5rem;
-        background-color: #ffffff;
+    body, .main {
+        background: linear-gradient(135deg, #f8f9fa 0%, #e7f3fe 100%);
+        min-height: 100vh;
     }
-    
     h1, h2, h3 {
         color: var(--cordoba-azul);
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        font-weight: 700;
+        letter-spacing: 0.5px;
     }
-    
     .stButton>button {
-        background-color: var(--cordoba-azul);
+        background: linear-gradient(90deg, var(--cordoba-azul) 60%, var(--cordoba-celeste) 100%);
         color: white;
         border: none;
-        border-radius: 4px;
-        padding: 0.5rem 1rem;
-        font-weight: 500;
+        border-radius: 6px;
+        padding: 0.6rem 1.2rem;
+        font-weight: 600;
+        box-shadow: 0 2px 8px rgba(46,117,181,0.08);
+        transition: background 0.3s, box-shadow 0.3s;
     }
-    
     .stButton>button:hover {
-        background-color: var(--cordoba-celeste);
+        background: linear-gradient(90deg, var(--cordoba-celeste) 60%, var(--cordoba-azul) 100%);
+        box-shadow: 0 4px 16px rgba(0,74,147,0.12);
     }
-    
     .card {
-        background-color: #f8f9fa;
-        border-radius: 5px;
-        padding: 1rem;
-        margin-bottom: 1rem;
+        background: #fff;
+        border-radius: 12px;
+        padding: 1.5rem 1.2rem;
+        margin-bottom: 1.5rem;
         border: 1px solid var(--cordoba-gris-claro);
+        box-shadow: 0 2px 16px rgba(0,74,147,0.06);
+        transition: box-shadow 0.2s;
     }
-    
+    .card:hover {
+        box-shadow: 0 6px 24px rgba(0,74,147,0.12);
+    }
     .header-container {
         display: flex;
         align-items: center;
-        margin-bottom: 1rem;
+        margin-bottom: 1.2rem;
         border-bottom: 2px solid var(--cordoba-azul);
-        padding-bottom: 0.5rem;
+        padding-bottom: 0.7rem;
+        background: linear-gradient(90deg, #e7f3fe 60%, #fff 100%);
+        border-radius: 8px 8px 0 0;
+        box-shadow: 0 1px 4px rgba(0,74,147,0.04);
     }
-    
     .header-icon {
-        font-size: 1.5rem;
-        margin-right: 0.5rem;
+        font-size: 2rem;
+        margin-right: 0.7rem;
         color: var(--cordoba-azul);
+        filter: drop-shadow(0 2px 4px #2e75b533);
     }
-    
     .header-text {
-        font-size: 1.2rem;
-        font-weight: 600;
+        font-size: 1.3rem;
+        font-weight: 700;
         color: var(--cordoba-azul);
+        letter-spacing: 0.5px;
     }
-    
     .badge {
         display: inline-block;
-        padding: 0.25rem 0.5rem;
-        background-color: var(--cordoba-celeste);
+        padding: 0.3rem 0.7rem;
+        background: linear-gradient(90deg, var(--cordoba-celeste) 60%, var(--cordoba-azul) 100%);
         color: white;
-        border-radius: 4px;
+        border-radius: 6px;
         margin: 0.2rem;
-        font-size: 0.8rem;
+        font-size: 0.85rem;
+        font-weight: 500;
+        box-shadow: 0 1px 4px rgba(46,117,181,0.10);
     }
-    
+    .info-text, .success-text, .warning-text, .error-text {
+        border-radius: 8px;
+        margin-bottom: 1.2rem;
+        font-size: 1rem;
+        font-weight: 500;
+        box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+    }
     .info-text {
-        background-color: #e7f3fe;
-        border-left: 3px solid var(--cordoba-celeste);
-        padding: 0.8rem;
-        margin-bottom: 1rem;
+        background: #e7f3fe;
+        border-left: 4px solid var(--cordoba-celeste);
+        color: #004A93;
     }
-    
     .success-text {
-        background-color: #e8f5e9;
-        border-left: 3px solid var(--cordoba-verde);
-        padding: 0.8rem;
-        margin-bottom: 1rem;
+        background: #e8f5e9;
+        border-left: 4px solid var(--cordoba-verde);
+        color: #006b3c;
     }
-    
     .warning-text {
-        background-color: #fff8e1;
-        border-left: 3px solid var(--cordoba-amarillo);
-        padding: 0.8rem;
-        margin-bottom: 1rem;
+        background: #fff8e1;
+        border-left: 4px solid var(--cordoba-amarillo);
+        color: #b38f00;
     }
-    
     .error-text {
-        background-color: #ffebee;
-        border-left: 3px solid var(--cordoba-rojo);
-        padding: 0.8rem;
-        margin-bottom: 1rem;
+        background: #ffebee;
+        border-left: 4px solid var(--cordoba-rojo);
+        color: #c00000;
     }
-    
-    /* Estilo para los dataframes */
     .stDataFrame {
         border: 1px solid var(--cordoba-gris-claro);
-        border-radius: 5px;
+        border-radius: 8px;
+        box-shadow: 0 1px 8px rgba(0,74,147,0.07);
     }
-    
-    /* Estilo para los selectbox y multiselect */
     .stSelectbox, .stMultiSelect {
-        border-radius: 4px;
+        border-radius: 6px;
+        box-shadow: 0 1px 4px rgba(0,74,147,0.04);
     }
-    
-    /* Logo del Gobierno */
     .gobierno-logo {
         text-align: center;
-        margin-bottom: 1rem;
+        margin-bottom: 1.5rem;
     }
-    
     .gobierno-logo img {
-        max-width: 200px;
+        max-width: 220px;
+        filter: drop-shadow(0 2px 8px #004a9322);
     }
-    
-    /* Pie de página */
     .footer {
         text-align: center;
-        padding: 1rem;
-        margin-top: 2rem;
+        padding: 1.2rem;
+        margin-top: 2.5rem;
         border-top: 1px solid var(--cordoba-gris-claro);
         color: var(--cordoba-gris);
-        font-size: 0.8rem;
+        font-size: 0.9rem;
+        background: #f8f9fa;
+        border-radius: 0 0 12px 12px;
     }
-    
-    /* Mejoras en los inputs */
     .stTextInput>div>div>input {
         border: 1px solid var(--cordoba-gris-claro);
-        border-radius: 4px;
+        border-radius: 6px;
+        font-size: 1rem;
+        padding: 0.5rem;
+        transition: border-color 0.2s, box-shadow 0.2s;
     }
-    
     .stTextInput>div>div>input:focus {
         border-color: var(--cordoba-azul);
-        box-shadow: 0 0 0 0.2rem rgba(0, 74, 147, 0.25);
+        box-shadow: 0 0 0 0.2rem rgba(0, 74, 147, 0.15);
     }
-    
-    /* Mejoras en los botones de descarga */
     .stDownloadButton>button {
-        background-color: var(--cordoba-celeste);
+        background: linear-gradient(90deg, var(--cordoba-celeste) 60%, var(--cordoba-azul) 100%);
         color: white;
+        border-radius: 6px;
+        font-weight: 600;
+        transition: background 0.3s;
     }
-    
     .stDownloadButton>button:hover {
-        background-color: var(--cordoba-azul);
+        background: linear-gradient(90deg, var(--cordoba-azul) 60%, var(--cordoba-celeste) 100%);
+    }
+    /* Scrollbar personalizado */
+    ::-webkit-scrollbar {
+        width: 10px;
+        background: #e7f3fe;
+    }
+    ::-webkit-scrollbar-thumb {
+        background: var(--cordoba-celeste);
+        border-radius: 6px;
     }
     </style>
 """, unsafe_allow_html=True)
@@ -817,7 +829,7 @@ def main():
     # Crear pestañas con estilo mejorado
     col1, col2, col3 = st.columns(3)
     with col1:
-        btn1 = st.button("📚 Explorar Cursos", use_container_width=True)
+        btn1 = st.button("📚 Explorar Cursos y Certificaciones actuales", use_container_width=True)
     with col2:
         btn2 = st.button("🔗 Crear Equivalencias", use_container_width=True)
     with col3:
