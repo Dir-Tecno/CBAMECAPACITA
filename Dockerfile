@@ -12,7 +12,8 @@ WORKDIR /app
 
 # Clonar el repositorio manteniendo el historial de Git
 RUN git clone https://github.com/Dir-Tecno/CBAMECAPACITA.git . && \
-    git pull origin main
+    git fetch origin && \
+    git reset --hard origin/main
 
 # Crear directorios necesarios
 RUN mkdir -p /app/logs /app/.streamlit /app/src/pages /app/src/config /app/src/utils
