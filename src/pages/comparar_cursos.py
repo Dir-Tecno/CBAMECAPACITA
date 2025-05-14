@@ -232,13 +232,19 @@ def load_data():
         
         # Cargar datos de certificaciones
         query_certificaciones = """
-            SELECT DISTINCT cl.ID_CERTIFICACION, cl.N_CERTIFICACION, cl.LUGAR_CURSADO 
+            SELECT unique cl.N_CERTIFICACION
             FROM T_CERTIF_X_LOCALIDAD cl
             ORDER BY cl.N_CERTIFICACION
         """
         
         df_historico = pd.read_sql(query_historico, engine)
         df_certificaciones = pd.read_sql(query_certificaciones, engine)
+        
+        # Procesar el campo N_CERTIFICACION para extraer el sector
+        df_certificaciones['N_SECTOR'] = df_certificaciones['N_CERTIFICACION'].apply(
+            lambda x: x.split(' - ')[1] if ' - ' in x else '')
+        df_certificaciones['N_CERTIFICACION'] = df_certificaciones['N_CERTIFICACION'].apply(
+            lambda x: x.split(' - ')[0] if ' - ' in x else x)
         
         return df_historico, df_certificaciones
     except Exception as e:
@@ -272,11 +278,10 @@ def mostrar_cursos_historicos(df_historico):
     
     if not df_filtrado.empty:
         st.dataframe(
-            df_filtrado,
+            df_filtrado[['N_CURSO', 'N_SECTOR']],  # Eliminamos ID_CURSO
             use_container_width=True,
             hide_index=True,
             column_config={
-                "ID_CURSO": st.column_config.NumberColumn("ID", format="%d"),
                 "N_CURSO": st.column_config.TextColumn("Nombre del Curso"),
                 "N_SECTOR": st.column_config.TextColumn("Sector")
             }
@@ -293,14 +298,14 @@ def mostrar_certificaciones(df_certificaciones):
     with col1:
         busqueda_cert = st.text_input("🔍 Buscar certificación", placeholder="Escriba para filtrar...")
     with col2:
-        lugar_options = ['Todos'] + sorted(df_certificaciones['LUGAR_CURSADO'].unique().tolist())
-        lugar_selected = st.selectbox("Lugar", lugar_options)
+        sector_options = ['Todos'] + sorted(df_certificaciones['N_SECTOR'].unique().tolist())
+        sector_selected = st.selectbox("Sector", sector_options)
     
     # Aplicar filtros
     df_filtrado = df_certificaciones.copy()
     
-    if lugar_selected != 'Todos':
-        df_filtrado = df_filtrado[df_filtrado['LUGAR_CURSADO'] == lugar_selected]
+    if sector_selected != 'Todos':
+        df_filtrado = df_filtrado[df_filtrado['N_SECTOR'] == sector_selected]
         
     if busqueda_cert:
         df_filtrado = df_filtrado[df_filtrado['N_CERTIFICACION'].str.contains(busqueda_cert, case=False, na=False)]
@@ -310,13 +315,12 @@ def mostrar_certificaciones(df_certificaciones):
     
     if not df_filtrado.empty:
         st.dataframe(
-            df_filtrado,
+            df_filtrado[['N_CERTIFICACION', 'N_SECTOR']],  # Eliminamos ID_CERTIFICACION y LUGAR_CURSADO
             use_container_width=True,
             hide_index=True,
             column_config={
-                "ID_CERTIFICACION": st.column_config.NumberColumn("ID", format="%d"),
                 "N_CERTIFICACION": st.column_config.TextColumn("Nombre de Certificación"),
-                "LUGAR_CURSADO": st.column_config.TextColumn("Lugar")
+                "N_SECTOR": st.column_config.TextColumn("Sector")
             }
         )
     else:
