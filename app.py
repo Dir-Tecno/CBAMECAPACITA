@@ -9,6 +9,7 @@ from streamlit import runtime
 import gc
 from huggingface_hub import hf_hub_download
 from src.pages.comparar_cursos import main as comparar_cursos_main
+from datetime import datetime, date
 
 # Configurar logging para mostrar en la consola
 logging.basicConfig(
@@ -23,6 +24,8 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 # Configuración de página
+# IMPORTANTE: st.set_page_config() debe ser la primera llamada a un comando de Streamlit.
+# Solo debe aparecer una vez en tu aplicación, idealmente en el script principal.
 try:
     st.set_page_config(
         page_title="CBA ME CAPACITA",
@@ -227,15 +230,7 @@ def cargar_datos_huggingface(hf_token) -> pd.DataFrame:
                     'FEC_INICIO': 'INICIO',
                     'FEC_FIN': 'FIN'
                 })
-                
-                # Filtrar registros con FEC_INICIO a partir del 1 de enero de 2018
-                df['INICIO'] = pd.to_datetime(df['INICIO'], format='%d/%m/%Y', errors='coerce')
-                fecha_filtro = pd.Timestamp('2018-01-01')
-                df = df[df['INICIO'] >= fecha_filtro]
-
-                # Formatear la columna 'INICIO' para mostrar en formato dd/mm/yyyy
-                df['INICIO'] = df['INICIO'].dt.strftime('%d/%m/%Y')
-
+            
             except Exception as e:
                 st.error(f"Error al leer el archivo Parquet: {str(e)}")
                 logging.error(f"Error detallado al leer Parquet: {traceback.format_exc()}")
@@ -258,8 +253,7 @@ def crear_filtros_predictivos(df: pd.DataFrame):
     st.subheader("🔍 Filtros de búsqueda")
     
     filtros = {}
-    col1, col2, col3, col4 = st.columns(4)
-
+    col1, col2, col3, col4, col5 = st.columns(5)
     with col1:
         st.markdown("<h3 class='subheader'>📚 Cursos</h3>", unsafe_allow_html=True)
         curso = st.text_input("Escribe el nombre del curso", placeholder="Ej: Programación")
@@ -287,18 +281,74 @@ def crear_filtros_predictivos(df: pd.DataFrame):
     with col4:
         st.markdown("<h3 class='subheader'>🔑 CUIL</h3>", unsafe_allow_html=True)
         cuil = st.text_input("Escribe el CUIL", placeholder="Ej: 20123456789")
+        # Asegúrate de manejar la conversión a string antes de la búsqueda para CUIL
         filtros['CUIL'] = (
             df[df['CUIL'].astype(str).str.contains(cuil, case=False, na=False)]['CUIL'].unique()
             if cuil else df['CUIL'].unique()
         )
-    
+
+    with col5: # Nueva columna para el filtro de año
+        st.markdown("<h3 class='subheader'>🗓️ Año de Fin</h3>", unsafe_allow_html=True)
+        
+        # Asegúrate de que 'FIN' sea de tipo datetime y extrae los años
+        df['FIN'] = pd.to_datetime(df['FIN'], errors='coerce')
+        # Filtra los NaT antes de obtener los años únicos
+        available_years = sorted(df['FIN'].dropna().dt.year.unique(), reverse=True)
+        
+        if not available_years:
+            st.warning("No hay años disponibles para filtrar.")
+            selected_year = None
+        else:
+            # Opción para no filtrar por año
+            years_options = ['Todos'] + available_years
+            selected_year_str = st.selectbox(
+                "Selecciona un año:",
+                options=years_options,
+                index=0 # Por defecto "Todos"
+            )
+            selected_year = int(selected_year_str) if selected_year_str != 'Todos' else None
+        
+        # ALMACENAR EL AÑO SELECCIONADO DIRECTAMENTE
+        filtros['anio_fin'] = selected_year 
+
     st.markdown("</div>", unsafe_allow_html=True)
     return filtros
 
 def aplicar_filtros(df: pd.DataFrame, filtros: dict) -> pd.DataFrame:
     df_filtrado = df.copy()
+
+    # --- Aplicar el filtro de año de fin primero y de forma explícita ---
+    # Asegurarse de que la columna 'FIN' sea datetime para poder extraer el año
+    df_filtrado['FIN'] = pd.to_datetime(df_filtrado['FIN'], errors='coerce')
+
+    if 'anio_fin' in filtros and filtros['anio_fin'] is not None:
+        selected_year = filtros['anio_fin']
+        # Filtra por el año de la columna 'FIN', ignorando NaT
+        df_filtrado = df_filtrado[df_filtrado['FIN'].dt.year == selected_year]
+    
+    # --- Aplicar los demás filtros (texto, CUIL) ---
     for col, vals in filtros.items():
-        df_filtrado = df_filtrado[df_filtrado[col].isin(vals)]
+        # Ignorar 'anio_fin' ya que lo manejamos arriba y no es una columna de df
+        if col == 'anio_fin':
+            continue 
+
+        # Asegurarse de que vals no sea None o vacío
+        if vals is not None and len(vals) > 0:
+            if col == 'CUIL':
+                # Convertir a string para la comparación si CUIL puede ser numérico en df
+                df_filtrado = df_filtrado[df_filtrado[col].astype(str).isin(vals.astype(str))]
+            else:
+                # Asegurarse de que la columna exista en el DataFrame antes de filtrar
+                if col in df_filtrado.columns:
+                    df_filtrado = df_filtrado[df_filtrado[col].isin(vals)]
+                else:
+                    logger.warning(f"La columna '{col}' no se encuentra en el DataFrame filtrado. Ignorando este filtro.")
+        else:
+            # Si el filtro predictivo para una columna de texto no encontró coincidencias,
+            # el resultado debe ser un DataFrame vacío para esa columna.
+            if col in df_filtrado.columns and not df[col].empty:
+                 df_filtrado = df_filtrado[df_filtrado[col].isin([])]
+
     return df_filtrado
 
 @st.cache_data
@@ -327,7 +377,9 @@ def mostrar_tabla_paginada(df: pd.DataFrame, filas_por_pagina: int = 10):
     with col1:
         # Selector de registros por página
         filas_opciones = [10, 25, 50, 100]
-        filas_por_pagina = st.selectbox("Registros por página:", filas_opciones, index=filas_opciones.index(filas_por_pagina) if filas_por_pagina in filas_opciones else 0)
+        # Asegurarse de que el valor inicial sea válido si filas_por_pagina no está en las opciones
+        current_filas_idx = filas_opciones.index(filas_por_pagina) if filas_por_pagina in filas_opciones else 0
+        filas_por_pagina = st.selectbox("Registros por página:", filas_opciones, index=current_filas_idx)
         
     with col2:
         # Mostrar la tabla con los datos de la página actual
@@ -340,6 +392,9 @@ def mostrar_tabla_paginada(df: pd.DataFrame, filas_por_pagina: int = 10):
         # Asegurar que la página actual es válida
         if st.session_state.pagina_actual > total_paginas:
             st.session_state.pagina_actual = total_paginas
+        # Si no hay páginas, la página actual debería ser 1 (si hay registros)
+        if total_paginas == 0 and total_registros > 0:
+            st.session_state.pagina_actual = 1
         
         # Calcular índices de inicio y fin para la página actual
         inicio = (st.session_state.pagina_actual - 1) * filas_por_pagina
@@ -347,7 +402,7 @@ def mostrar_tabla_paginada(df: pd.DataFrame, filas_por_pagina: int = 10):
     
     with col3:
         # Información de paginación
-        st.markdown(f"<div class='pagination-info'>Página <b>{st.session_state.pagina_actual}</b> de <b>{total_paginas}</b></div>", unsafe_allow_html=True)
+        st.markdown(f"<div class='pagination-info'>Página <b>{st.session_state.pagina_actual}</b> de <b>{total_paginas if total_paginas > 0 else 1}</b></div>", unsafe_allow_html=True)
     
     # Obtener datos para la página actual
     datos_pagina = get_page_data(df, inicio, fin)
@@ -372,7 +427,8 @@ def mostrar_tabla_paginada(df: pd.DataFrame, filas_por_pagina: int = 10):
     
     with col3:
         # Selector de página (input numérico)
-        nueva_pagina = st.number_input("Ir a página:", min_value=1, max_value=total_paginas, value=st.session_state.pagina_actual, step=1)
+        # Asegurarse de que el valor inicial sea el actual y los límites sean correctos
+        nueva_pagina = st.number_input("Ir a página:", min_value=1, max_value=total_paginas if total_paginas > 0 else 1, value=st.session_state.pagina_actual, step=1)
         if nueva_pagina != st.session_state.pagina_actual:
             st.session_state.pagina_actual = nueva_pagina
             st.rerun()
@@ -404,35 +460,37 @@ def descargar_datos(df: pd.DataFrame):
         formato = st.selectbox("Formato de descarga:", ["CSV", "Excel", "JSON"])
     
     with col2:
-        # Botón de descarga
-        if st.button("📥 Descargar datos filtrados"):
-            if formato == "CSV":
-                csv = df.to_csv(index=False).encode('utf-8')
-                st.download_button(
-                    label="Descargar CSV",
-                    data=csv,
-                    file_name="datos_filtrados.csv",
-                    mime="text/csv"
-                )
-            elif formato == "Excel":
-                output = io.BytesIO()
-                with pd.ExcelWriter(output, engine='xlsxwriter') as writer:
-                    df.to_excel(writer, index=False, sheet_name='Datos')
-                excel_data = output.getvalue()
-                st.download_button(
-                    label="Descargar Excel",
-                    data=excel_data,
-                    file_name="datos_filtrados.xlsx",
-                    mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-                )
-            elif formato == "JSON":
-                json_str = df.to_json(orient='records')
-                st.download_button(
-                    label="Descargar JSON",
-                    data=json_str,
-                    file_name="datos_filtrados.json",
-                    mime="application/json"
-                )
+        # Botón de descarga. El botón debe ser un st.download_button directamente si se genera el archivo.
+        if formato == "CSV":
+            csv = df.to_csv(index=False).encode('utf-8')
+            st.download_button(
+                label="Descargar CSV",
+                data=csv,
+                file_name="datos_filtrados.csv",
+                mime="text/csv",
+                key="download_csv_button" # Añadir una key única
+            )
+        elif formato == "Excel":
+            output = io.BytesIO()
+            with pd.ExcelWriter(output, engine='xlsxwriter') as writer:
+                df.to_excel(writer, index=False, sheet_name='Datos')
+            excel_data = output.getvalue()
+            st.download_button(
+                label="Descargar Excel",
+                data=excel_data,
+                file_name="datos_filtrados.xlsx",
+                mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                key="download_excel_button" # Añadir una key única
+            )
+        elif formato == "JSON":
+            json_str = df.to_json(orient='records')
+            st.download_button(
+                label="Descargar JSON",
+                data=json_str,
+                file_name="datos_filtrados.json",
+                mime="application/json",
+                key="download_json_button" # Añadir una key única
+            )
     st.markdown("</div>", unsafe_allow_html=True)
 
 def main():
@@ -479,6 +537,7 @@ def main():
             descargar_datos(df_filtrado)
 
         with tab2:
+            # Asegúrate de que comparar_cursos_main no llame a st.set_page_config()
             comparar_cursos_main()
         
         
@@ -494,7 +553,7 @@ def main():
     except Exception as e:
         logger.error(f"Error general en la aplicación: {traceback.format_exc()}")
         st.error("Ha ocurrido un error inesperado. Por favor, intenta más tarde.")
-        st.stop()
+        # Aquí NO se usa st.stop() para no detener la app por cualquier error.
 
 if __name__ == '__main__':
     try:
