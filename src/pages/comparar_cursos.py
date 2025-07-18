@@ -235,33 +235,35 @@ def load_data():
         if engine is None:
             return None, None
 
-        # Cargar datos de cursos históricos
+        # Cargar datos de cursos históricos con suma de horas desde T_ALUMNOS_X_CURSOS
         query_historico = """
-            SELECT DISTINCT cs.ID_CURSO, cs.N_CURSO, cs.ID_SECTOR, cs.N_SECTOR
+           SELECT cs.ID_CURSO, cs.N_CURSO, cs.ID_SECTOR, cs.N_SECTOR, COALESCE(ac.CANTIDAD_HS, 0) AS CANTIDAD_HS
             FROM T_CURSOS_X_SECTOR cs
+            LEFT JOIN T_ALUMNOS_X_CURSOS ac ON cs.N_CURSO = ac.N_CURSO
+            GROUP BY cs.ID_CURSO, cs.N_CURSO, cs.ID_SECTOR, cs.N_SECTOR, ac.CANTIDAD_HS
             ORDER BY cs.N_CURSO
         """
-        
-        # Cargar datos de certificaciones - incluir ID_CERTIFICACION
+
+        # Cargar datos de certificaciones
         query_certificaciones = """
             SELECT cl.ID_CERTIFICACION, cl.N_CERTIFICACION
             FROM T_CERTIF_X_LOCALIDAD cl
             GROUP BY cl.N_CERTIFICACION, cl.ID_CERTIFICACION
             ORDER BY cl.N_CERTIFICACION
         """
-        
+
         df_historico = pd.read_sql(query_historico, engine)
         df_certificaciones = pd.read_sql(query_certificaciones, engine)
-        
+
         # Procesar el campo N_CERTIFICACION para extraer el sector
         df_certificaciones['N_SECTOR'] = df_certificaciones['N_CERTIFICACION'].apply(
             lambda x: x.split(' - ')[1] if ' - ' in x else '')
         df_certificaciones['N_CERTIFICACION'] = df_certificaciones['N_CERTIFICACION'].apply(
             lambda x: x.split(' - ')[0] if ' - ' in x else x)
-        
+
         # Eliminar duplicados después de procesar
         df_certificaciones = df_certificaciones.drop_duplicates(subset=['N_CERTIFICACION'])
-        
+
         return df_historico, df_certificaciones
     except Exception as e:
         logger.error(f"Error al cargar datos: {traceback.format_exc()}")
@@ -289,17 +291,18 @@ def mostrar_cursos_historicos(df_historico):
     if busqueda_curso:
         df_filtrado = df_filtrado[df_filtrado['N_CURSO'].str.contains(busqueda_curso, case=False, na=False)]
     
-    # Mostrar resultados
+        # Mostrar resultados
     st.caption(f"Mostrando {len(df_filtrado)} de {len(df_historico)} cursos")
     
     if not df_filtrado.empty:
         st.dataframe(
-            df_filtrado[['N_CURSO', 'N_SECTOR']],  # Eliminamos ID_CURSO
+            df_filtrado[['N_CURSO', 'N_SECTOR', 'CANTIDAD_HS']],  # Agregamos CANTIDAD_HS
             use_container_width=True,
             hide_index=True,
             column_config={
                 "N_CURSO": st.column_config.TextColumn("Nombre del Curso"),
-                "N_SECTOR": st.column_config.TextColumn("Sector")
+                "N_SECTOR": st.column_config.TextColumn("Sector"),
+                "CANTIDAD_HS": st.column_config.NumberColumn("Cantidad Hs")
             }
         )
     else:
